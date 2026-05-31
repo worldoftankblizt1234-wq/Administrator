@@ -6,85 +6,9 @@
     <title>SBIDI ADMIN - Quản trị đơn hàng & hỗ trợ</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
-    
-    <!-- Firebase SDK -->
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-        import { getMessaging, getToken, onMessage } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-messaging.js";
-        
-        const firebaseConfig = {
-            apiKey: "AIzaSyDK7cPVIQjmrrj45DjvSjIJPmW2R05M_IA",
-            authDomain: "administrator2-cfe2d.firebaseapp.com",
-            projectId: "administrator2-cfe2d",
-            storageBucket: "administrator2-cfe2d.firebasestorage.app",
-            messagingSenderId: "144973962102",
-            appId: "1:144973962102:web:f4759dc0509cac503d3857",
-            measurementId: "G-6GYBSNB6N7"
-        };
-        
-        const app = initializeApp(firebaseConfig);
-        const messaging = getMessaging(app);
-        
-        // Yêu cầu quyền thông báo
-        async function requestNotificationPermission() {
-            try {
-                const permission = await Notification.requestPermission();
-                if (permission === 'granted') {
-                    console.log('✅ Đã được phép thông báo');
-                    
-                    // Lấy token để gửi thông báo từ server
-                    const token = await getToken(messaging, { 
-                        vapidKey: 'BLeFwn1T99rX0hV7lT8cQNqEwMxQyIw1pXwqyZvBnMoKrE5qYqZnF8pRqJxVjKvLwMxNtA' 
-                    });
-                    console.log('Token:', token);
-                    localStorage.setItem('fcm_token', token);
-                } else {
-                    console.log('❌ Không được phép thông báo');
-                }
-            } catch(err) {
-                console.error('Lỗi đăng ký thông báo:', err);
-            }
-        }
-        
-        // Lắng nghe thông báo khi web đang mở
-        onMessage(messaging, (payload) => {
-            console.log('Thông báo nhận được:', payload);
-            showToastNotification(payload.notification.title, payload.notification.body);
-        });
-        
-        // Hiển thị thông báo dạng toast
-        function showToastNotification(title, body) {
-            const toast = document.createElement('div');
-            toast.className = 'toast-notification warning';
-            toast.innerHTML = `
-                <div class="toast-header">
-                    <i class="bi bi-bell-fill"></i>
-                    <span>${title}</span>
-                </div>
-                <div class="toast-body">${body}</div>
-            `;
-            document.body.appendChild(toast);
-            setTimeout(() => toast.remove(), 5000);
-        }
-        
-        window.requestNotificationPermission = requestNotificationPermission;
-    </script>
-    
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { background: #0a0f1e; font-family: 'Inter', 'Segoe UI', sans-serif; color: #e2e8f0; min-height: 100vh; }
-        
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(20px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-        @keyframes slideIn {
-            from { transform: translateX(100%); opacity: 0; }
-            to { transform: translateX(0); opacity: 1; }
-        }
-        @keyframes spin {
-            to { transform: rotate(360deg); }
-        }
+        body { background: #0a0f1e; font-family: 'Segoe UI', sans-serif; color: #e2e8f0; min-height: 100vh; }
         
         .login-container, .changepass-container {
             display: flex;
@@ -102,7 +26,6 @@
             max-width: 420px;
             border: 1px solid rgba(139,92,246,0.3);
             box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5);
-            animation: fadeIn 0.6s ease-out;
         }
         .login-card h3, .changepass-card h3 {
             background: linear-gradient(135deg, #c084fc, #818cf8);
@@ -114,9 +37,7 @@
             font-weight: 800;
             font-size: 1.8rem;
         }
-        .changepass-card h3 {
-            background: linear-gradient(135deg, #fbbf24, #f59e0b);
-        }
+        .changepass-card h3 { background: linear-gradient(135deg, #fbbf24, #f59e0b); }
         input {
             width: 100%;
             padding: 14px 18px;
@@ -127,11 +48,7 @@
             margin-bottom: 20px;
             font-size: 1rem;
         }
-        input:focus {
-            outline: none;
-            border-color: #8b5cf6;
-            box-shadow: 0 0 0 3px rgba(139,92,246,0.2);
-        }
+        input:focus { outline: none; border-color: #8b5cf6; box-shadow: 0 0 0 3px rgba(139,92,246,0.2); }
         button {
             width: 100%;
             padding: 14px;
@@ -144,16 +61,14 @@
             cursor: pointer;
             transition: all 0.3s;
         }
-        button:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 10px 25px -5px rgba(139,92,246,0.4);
-        }
+        button:hover { transform: translateY(-2px); box-shadow: 0 10px 25px -5px rgba(139,92,246,0.4); }
         .error-msg { color: #ef4444; font-size: 0.8rem; margin-top: 12px; text-align: center; }
         .success-msg { color: #10b981; font-size: 0.8rem; margin-top: 12px; text-align: center; }
         
-        .admin-container { max-width: 1600px; margin: 0 auto; padding: 20px; animation: fadeIn 0.5s ease-out; }
+        .admin-container { max-width: 1400px; margin: 0 auto; padding: 20px; }
         .header { background: linear-gradient(135deg, #0f172a, #1e1b4b); padding: 20px 28px; border-radius: 24px; margin-bottom: 28px; border-bottom: 2px solid #8b5cf6; }
         .stat-card { background: #1e293b; border-radius: 20px; padding: 20px; display: inline-block; width: calc(33% - 16px); margin-right: 16px; transition: all 0.3s; border: 1px solid #334155; cursor: pointer; }
+        .stat-card:hover { transform: translateY(-4px); border-color: #8b5cf6; }
         .stat-value { font-size: 2.2rem; font-weight: 800; color: #c084fc; }
         .tab-bar { display: flex; gap: 12px; margin-bottom: 24px; border-bottom: 1px solid #334155; padding-bottom: 12px; flex-wrap: wrap; }
         .tab-btn { background: transparent; border: none; padding: 10px 28px; font-weight: 600; font-size: 0.95rem; color: #94a3b8; cursor: pointer; border-radius: 40px; transition: all 0.3s; }
@@ -164,7 +79,6 @@
         td { padding: 12px 18px; border-bottom: 1px solid #334155; vertical-align: middle; }
         .btn-refresh { background: #3b82f6; padding: 8px 22px; border-radius: 40px; display: inline-block; width: auto; margin-right: 12px; border: none; color: white; cursor: pointer; }
         .btn-logout { background: #ef4444; padding: 8px 22px; border-radius: 40px; display: inline-block; width: auto; border: none; color: white; cursor: pointer; }
-        .btn-notify { background: #10b981; padding: 8px 22px; border-radius: 40px; display: inline-block; width: auto; margin-right: 12px; border: none; color: white; cursor: pointer; }
         .btn-done { background: #10b981; padding: 5px 14px; border-radius: 30px; font-size: 0.7rem; display: inline-block; width: auto; border: none; color: white; cursor: pointer; }
         .image-link { color: #38bdf8; text-decoration: none; font-size: 0.7rem; }
         .footer { text-align: center; margin-top: 40px; padding: 20px; color: #64748b; font-size: 0.75rem; border-top: 1px solid #334155; }
@@ -185,38 +99,20 @@
             border-radius: 16px;
             z-index: 2000;
             animation: slideIn 0.3s ease;
-            box-shadow: 0 10px 25px -5px rgba(0,0,0,0.3);
             border-left: 4px solid;
         }
-        @media (min-width: 768px) {
-            .toast-notification { left: auto; right: 20px; }
-        }
-        .toast-header { padding: 12px 16px; background: rgba(0,0,0,0.2); display: flex; align-items: center; gap: 10px; font-weight: 600; }
-        .toast-body { padding: 12px 16px; font-size: 0.85rem; }
         .toast-notification.success { border-left-color: #10b981; }
         .toast-notification.error { border-left-color: #ef4444; }
         .toast-notification.warning { border-left-color: #f59e0b; }
-        
+        @media (min-width: 768px) { .toast-notification { left: auto; right: 20px; } }
+        .toast-header { padding: 12px 16px; background: rgba(0,0,0,0.2); display: flex; align-items: center; gap: 10px; font-weight: 600; }
+        .toast-body { padding: 12px 16px; font-size: 0.85rem; }
         .loading-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0,0,0,0.7);
-            backdrop-filter: blur(8px);
-            z-index: 3000;
-            display: none;
-            align-items: center;
-            justify-content: center;
-            flex-direction: column;
-            gap: 16px;
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); backdrop-filter: blur(8px); z-index: 3000;
+            display: none; align-items: center; justify-content: center; flex-direction: column; gap: 16px;
         }
         .loading-spinner { width: 50px; height: 50px; border: 3px solid rgba(139,92,246,0.3); border-top-color: #8b5cf6; border-radius: 50%; animation: spin 0.8s linear infinite; }
-        
-        @media (max-width: 768px) {
-            .stat-card { width: 100%; margin-right: 0; margin-bottom: 12px; }
-        }
+        @media (max-width: 768px) { .stat-card { width: 100%; margin-right: 0; margin-bottom: 12px; } }
     </style>
 </head>
 <body>
@@ -249,197 +145,99 @@
     <div id="adminView" class="admin-container" style="display: none;">
         <div class="header">
             <div class="flex-between">
-                <div>
-                    <h2><i class="bi bi-speedometer2"></i> SBIDI ADMIN</h2>
-                    <p style="margin-top:4px; color:#94a3b8;">Quản lý đơn hàng & yêu cầu hỗ trợ</p>
-                </div>
-                <div>
-                    <button id="enableNotifyBtn" class="btn-notify"><i class="bi bi-bell-fill"></i> Bật thông báo</button>
-                    <button id="refreshBtn" class="btn-refresh"><i class="bi bi-arrow-repeat"></i> Làm mới</button>
-                    <button id="logoutBtnAdmin" class="btn-logout"><i class="bi bi-box-arrow-right"></i> Đăng xuất</button>
-                </div>
+                <div><h2><i class="bi bi-speedometer2"></i> SBIDI ADMIN</h2><p style="margin-top:4px; color:#94a3b8;">Quản lý đơn hàng & yêu cầu hỗ trợ</p></div>
+                <div><button id="refreshBtn" class="btn-refresh"><i class="bi bi-arrow-repeat"></i> Làm mới</button><button id="logoutBtnAdmin" class="btn-logout"><i class="bi bi-box-arrow-right"></i> Đăng xuất</button></div>
             </div>
         </div>
-
         <div class="stats-wrapper" style="margin-bottom: 28px;">
-            <div class="stat-card" onclick="showToast('Tổng số đơn hàng: ' + document.getElementById('statOrders').innerText, 'info')">
-                <div><i class="bi bi-cart-fill"></i> Đơn hàng</div>
-                <div class="stat-value" id="statOrders">0</div>
-            </div>
-            <div class="stat-card" onclick="showToast('Tổng yêu cầu hỗ trợ: ' + document.getElementById('statSupports').innerText, 'info')">
-                <div><i class="bi bi-headset"></i> Yêu cầu hỗ trợ</div>
-                <div class="stat-value" id="statSupports">0</div>
-            </div>
-            <div class="stat-card" onclick="showToast('Số đơn chờ xử lý: ' + document.getElementById('statPending').innerText, 'warning')">
-                <div><i class="bi bi-hourglass-split"></i> Chờ xử lý</div>
-                <div class="stat-value" id="statPending">0</div>
-            </div>
+            <div class="stat-card"><div><i class="bi bi-cart-fill"></i> Đơn hàng</div><div class="stat-value" id="statOrders">0</div></div>
+            <div class="stat-card"><div><i class="bi bi-headset"></i> Yêu cầu hỗ trợ</div><div class="stat-value" id="statSupports">0</div></div>
+            <div class="stat-card"><div><i class="bi bi-hourglass-split"></i> Chờ xử lý</div><div class="stat-value" id="statPending">0</div></div>
         </div>
-
         <div class="tab-bar">
             <button class="tab-btn active" data-tab="orders"><i class="bi bi-cart"></i> Đơn đặt App</button>
             <button class="tab-btn" data-tab="supports"><i class="bi bi-tools"></i> Yêu cầu hỗ trợ</button>
         </div>
-
         <div id="ordersPanel" class="table-card">
-            <div style="padding: 14px 18px; border-bottom: 1px solid #334155;">
-                <span><i class="bi bi-info-circle-fill"></i> Danh sách đơn hàng</span>
-                <span id="ordersCount" class="badge-count">0</span>
-            </div>
-            <div style="overflow-x: auto;">
-                <table class="table table-dark">
-                    <thead><tr><th>Thời gian</th><th>UID</th><th>Messengers</th><th>Gmail</th><th>Dịch vụ</th><th>Mô tả</th><th>Liên hệ</th><th>Ảnh</th><th>SĐT</th><th>Trạng thái</th><th></th></tr></thead>
-                    <tbody id="ordersBody"><tr><td colspan="11" class="text-center"><span class="spinner"></span> Đang tải...<\/td><\/tr><\/tbody>
-                <\/table>
-            <\/div>
+            <div style="padding: 14px 18px; border-bottom:1px solid #334155;"><span><i class="bi bi-info-circle-fill"></i> Danh sách đơn hàng</span><span id="ordersCount" class="badge-count">0</span></div>
+            <div style="overflow-x:auto;"><table class="table table-dark"><thead><tr><th>Thời gian</th><th>UID</th><th>Messengers</th><th>Gmail</th><th>Dịch vụ</th><th>Mô tả</th><th>Liên hệ</th><th>Ảnh</th><th>SĐT</th><th>Trạng thái</th><th></th></tr></thead><tbody id="ordersBody"><tr><td colspan="11" class="text-center"><span class="spinner"></span> Đang tải...<\/td><\/tr><\/tbody><\/table><\/div>
         <\/div>
-
         <div id="supportsPanel" class="table-card" style="display: none;">
-            <div style="padding: 14px 18px; border-bottom: 1px solid #334155;">
-                <span><i class="bi bi-info-circle-fill"></i> Danh sách yêu cầu hỗ trợ</span>
-                <span id="supportsCount" class="badge-count">0</span>
-            <\/div>
-            <div style="overflow-x: auto;">
-                <table class="table table-dark">
-                    <thead><tr><th>Thời gian</th><th>UID</th><th>Messengers</th><th>Gmail</th><th>Loại</th><th>Mô tả</th><th>Liên hệ</th><th>Ảnh</th><th>SĐT</th><th>Trạng thái</th><th></th></tr></thead>
-                    <tbody id="supportsBody"><tr><td colspan="11" class="text-center"><span class="spinner"></span> Đang tải...<\/td><\/tr><\/tbody>
-                <\/table>
-            <\/div>
+            <div style="padding: 14px 18px; border-bottom:1px solid #334155;"><span><i class="bi bi-info-circle-fill"></i> Danh sách yêu cầu hỗ trợ</span><span id="supportsCount" class="badge-count">0</span><\/div>
+            <div style="overflow-x:auto;"><table class="table table-dark"><thead><tr><th>Thời gian</th><th>UID</th><th>Messengers</th><th>Gmail</th><th>Loại</th><th>Mô tả</th><th>Liên hệ</th><th>Ảnh</th><th>SĐT</th><th>Trạng thái</th><th></th></tr></thead><tbody id="supportsBody"><tr><td colspan="11" class="text-center"><span class="spinner"></span> Đang tải...<\/td><\/tr><\/tbody><\/table><\/div>
         <\/div>
-
-        <div class="footer">
-            <i class="bi bi-shield-check"></i> Dữ liệu đồng bộ từ Google Sheets | SBIDI ADMIN
-        <\/div>
+        <div class="footer"><i class="bi bi-shield-check"></i> Dữ liệu đồng bộ từ Google Sheets | SBIDI ADMIN<\/div>
     <\/div>
 <\/div>
 
 <script>
 // === CẤU HÌNH ===
-const GAS_URL = 'https://script.google.com/macros/s/AKfycbwUArYxoApwU5922A74DUg99NyCgpKQiXVHgH_vqyjOxEszfv2trafcO-_o0C5bjX2jcg/exec';
+// ⚠️ QUAN TRỌNG: THAY URL NÀY BẰNG URL GAS SAU KHI DEPLOY LẠI ⚠️
+const GAS_URL = 'https://script.google.com/macros/s/AKfycbwsIQl_4RygaWwcuAsKAlDpH9yGugry2VQT5YW0s6_X6lkgCF5068MYVBCts8qdO9xBWw/exec';
 const DEFAULT_PASSWORD = 'default123';
 
 let users = [];
-try {
-    const stored = localStorage.getItem('sbidi_admin_users');
-    if (stored) users = JSON.parse(stored);
-} catch(e) {}
-if (users.length === 0) {
-    users = [{ password: DEFAULT_PASSWORD, hasChangedPassword: false }];
-    localStorage.setItem('sbidi_admin_users', JSON.stringify(users));
-}
+try { const stored = localStorage.getItem('sbidi_admin_users'); if (stored) users = JSON.parse(stored); } catch(e) {}
+if (users.length === 0) { users = [{ password: DEFAULT_PASSWORD, hasChangedPassword: false }]; localStorage.setItem('sbidi_admin_users', JSON.stringify(users)); }
 
-let currentUser = null;
-let ordersData = [], supportsData = [];
-let previousOrdersCount = 0, previousSupportsCount = 0;
-let refreshInterval = null;
-
-// === THÔNG BÁO TRÌNH DUYỆT ===
-async function enableNotifications() {
-    if (window.requestNotificationPermission) {
-        await window.requestNotificationPermission();
-        showToast('✅ Đã bật thông báo! Sẽ nhận thông báo khi có đơn mới.', 'success');
-    } else {
-        showToast('⚠️ Trình duyệt không hỗ trợ thông báo đẩy', 'warning');
-    }
-}
+let currentUser = null, ordersData = [], supportsData = [], refreshInterval = null;
 
 function showToast(message, type = 'success') {
     const toast = document.createElement('div');
     toast.className = `toast-notification ${type}`;
-    toast.innerHTML = `
-        <div class="toast-header">
-            <i class="bi bi-${type === 'success' ? 'check-circle-fill' : (type === 'error' ? 'x-circle-fill' : 'exclamation-triangle-fill')}"></i>
-            <span>${type === 'success' ? 'Thành công' : (type === 'error' ? 'Lỗi' : 'Cảnh báo')}</span>
-        </div>
-        <div class="toast-body">${message}</div>
-    `;
+    toast.innerHTML = `<div class="toast-header"><i class="bi bi-${type === 'success' ? 'check-circle-fill' : (type === 'error' ? 'x-circle-fill' : 'exclamation-triangle-fill')}"></i><span>${type === 'success' ? 'Thành công' : (type === 'error' ? 'Lỗi' : 'Cảnh báo')}</span></div><div class="toast-body">${message}</div>`;
     document.body.appendChild(toast);
-    setTimeout(() => toast.remove(), 4000);
+    setTimeout(() => toast.remove(), 3000);
 }
 
-function showLoading(message) {
+function showLoading(show, message = 'Đang xử lý...') {
     let overlay = document.getElementById('loadingOverlay');
-    if (!overlay) {
-        overlay = document.createElement('div');
-        overlay.id = 'loadingOverlay';
-        overlay.className = 'loading-overlay';
-        overlay.innerHTML = '<div class="loading-spinner"></div><div class="loading-text"></div>';
-        document.body.appendChild(overlay);
-    }
-    overlay.querySelector('.loading-text').innerText = message || 'Đang xử lý...';
-    overlay.style.display = 'flex';
+    if (show) {
+        if (!overlay) { overlay = document.createElement('div'); overlay.id = 'loadingOverlay'; overlay.className = 'loading-overlay'; overlay.innerHTML = '<div class="loading-spinner"></div><div class="loading-text"></div>'; document.body.appendChild(overlay); }
+        overlay.querySelector('.loading-text').innerText = message;
+        overlay.style.display = 'flex';
+    } else if (overlay) overlay.style.display = 'none';
 }
 
-function hideLoading() {
-    const overlay = document.getElementById('loadingOverlay');
-    if (overlay) overlay.style.display = 'none';
-}
-
-// === ĐĂNG NHẬP ===
 function handleLogin() {
     const pwd = document.getElementById('passwordInput').value.trim();
     const user = users[0];
-    
-    if (!pwd) {
-        showToast('Vui lòng nhập mật khẩu', 'error');
-        return;
-    }
-    
+    if (!pwd) { showToast('Vui lòng nhập mật khẩu', 'error'); return; }
     if (user && user.password === pwd) {
         currentUser = user;
         if (!user.hasChangedPassword) {
             document.getElementById('loginView').style.display = 'none';
             document.getElementById('changepassView').style.display = 'flex';
-            showToast('Vui lòng đổi mật khẩu lần đầu', 'warning');
         } else {
             localStorage.setItem('sbidi_admin_logged', 'true');
             document.getElementById('loginView').style.display = 'none';
             document.getElementById('adminView').style.display = 'block';
             showToast('Đăng nhập thành công!', 'success');
             fetchAllData();
-            startAutoRefresh();
-            // Tự động yêu cầu quyền thông báo sau khi đăng nhập
-            setTimeout(() => {
-                if (Notification.permission === 'default') {
-                    enableNotifications();
-                }
-            }, 1000);
+            if (refreshInterval) clearInterval(refreshInterval);
+            refreshInterval = setInterval(fetchAllData, 30000);
         }
-    } else {
-        showToast('Sai mật khẩu!', 'error');
-    }
+    } else { showToast('Sai mật khẩu!', 'error'); }
 }
 
-// === ĐỔI MẬT KHẨU ===
 function handleChangePassword() {
-    const newPass = document.getElementById('newPassInput').value.trim();
-    const confirmPass = document.getElementById('confirmPassInput').value.trim();
-    
-    if (!newPass || !confirmPass) {
-        showToast('Vui lòng nhập mật khẩu mới', 'error');
-        return;
-    }
-    if (newPass.length < 6) {
-        showToast('Mật khẩu phải có ít nhất 6 ký tự', 'error');
-        return;
-    }
-    if (newPass !== confirmPass) {
-        showToast('Mật khẩu xác nhận không khớp', 'error');
-        return;
-    }
-    
-    showLoading('Đang cập nhật mật khẩu...');
+    const newPass = document.getElementById('newPassInput').value.trim(), confirmPass = document.getElementById('confirmPassInput').value.trim();
+    if (!newPass || !confirmPass) { showToast('Vui lòng nhập mật khẩu mới', 'error'); return; }
+    if (newPass.length < 6) { showToast('Mật khẩu phải có ít nhất 6 ký tự', 'error'); return; }
+    if (newPass !== confirmPass) { showToast('Mật khẩu xác nhận không khớp', 'error'); return; }
+    showLoading(true, 'Đang cập nhật...');
     setTimeout(() => {
         users[0] = { password: newPass, hasChangedPassword: true };
         localStorage.setItem('sbidi_admin_users', JSON.stringify(users));
-        hideLoading();
+        showLoading(false);
         showToast('✅ Đổi mật khẩu thành công!', 'success');
         setTimeout(() => {
             localStorage.setItem('sbidi_admin_logged', 'true');
             document.getElementById('changepassView').style.display = 'none';
             document.getElementById('adminView').style.display = 'block';
             fetchAllData();
-            startAutoRefresh();
+            if (refreshInterval) clearInterval(refreshInterval);
+            refreshInterval = setInterval(fetchAllData, 30000);
         }, 1000);
     }, 500);
 }
@@ -453,68 +251,14 @@ function handleLogout() {
     showToast('Đã đăng xuất', 'info');
 }
 
-function startAutoRefresh() {
-    if (refreshInterval) clearInterval(refreshInterval);
-    refreshInterval = setInterval(checkNewData, 15000);
-}
-
-async function checkNewData() {
-    try {
-        const [ordersRes, supportsRes] = await Promise.all([
-            fetch(GAS_URL + '?action=getOrders'),
-            fetch(GAS_URL + '?action=getSupports')
-        ]);
-        const newOrders = await ordersRes.json();
-        const newSupports = await supportsRes.json();
-        
-        const newOrdersCount = Array.isArray(newOrders) && newOrders.length > 1 ? newOrders.length - 1 : 0;
-        const newSupportsCount = Array.isArray(newSupports) && newSupports.length > 1 ? newSupports.length - 1 : 0;
-        
-        if (newOrdersCount > previousOrdersCount && previousOrdersCount !== 0) {
-            const msg = `📢 Có ${newOrdersCount - previousOrdersCount} đơn hàng mới!`;
-            showToast(msg, 'warning');
-            // Gửi thông báo đẩy nếu đã được cấp quyền
-            if (Notification.permission === 'granted') {
-                new Notification('SBIDI ADMIN - Đơn hàng mới', {
-                    body: msg,
-                    icon: 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"%3E%3Crect width="100" height="100" fill="%238b5cf6"/%3E%3Ctext x="50" y="68" font-size="50" text-anchor="middle" fill="white" font-weight="bold"%3ES%3C/text%3E%3C/svg%3E'
-                });
-            }
-        }
-        if (newSupportsCount > previousSupportsCount && previousSupportsCount !== 0) {
-            const msg = `🛠️ Có ${newSupportsCount - previousSupportsCount} yêu cầu hỗ trợ mới!`;
-            showToast(msg, 'warning');
-            if (Notification.permission === 'granted') {
-                new Notification('SBIDI ADMIN - Hỗ trợ mới', {
-                    body: msg,
-                    icon: 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"%3E%3Crect width="100" height="100" fill="%238b5cf6"/%3E%3Ctext x="50" y="68" font-size="50" text-anchor="middle" fill="white" font-weight="bold"%3ES%3C/text%3E%3C/svg%3E'
-                });
-            }
-        }
-        
-        previousOrdersCount = newOrdersCount;
-        previousSupportsCount = newSupportsCount;
-        ordersData = newOrders;
-        supportsData = newSupports;
-        renderOrders();
-        renderSupports();
-        updateStats();
-    } catch(e) {
-        console.error('Lỗi kiểm tra:', e);
-    }
-}
-
 async function fetchOrders() {
     try {
         const res = await fetch(GAS_URL + '?action=getOrders');
         const data = await res.json();
         ordersData = Array.isArray(data) ? data : [];
-        previousOrdersCount = (ordersData.length - 1) || 0;
         renderOrders();
         updateStats();
-    } catch(e) {
-        document.getElementById('ordersBody').innerHTML = '<tr><td colspan="11" class="text-center text-danger">❌ Lỗi kết nối<\/td><\/tr>';
-    }
+    } catch(e) { document.getElementById('ordersBody').innerHTML = '<tr><td colspan="11" class="text-center text-danger">❌ Lỗi tải dữ liệu<\/td><\/tr>'; }
 }
 
 async function fetchSupports() {
@@ -522,141 +266,63 @@ async function fetchSupports() {
         const res = await fetch(GAS_URL + '?action=getSupports');
         const data = await res.json();
         supportsData = Array.isArray(data) ? data : [];
-        previousSupportsCount = (supportsData.length - 1) || 0;
         renderSupports();
         updateStats();
-    } catch(e) {
-        document.getElementById('supportsBody').innerHTML = '<tr><td colspan="11" class="text-center text-danger">❌ Lỗi kết nối<\/td><\/tr>';
-    }
+    } catch(e) { document.getElementById('supportsBody').innerHTML = '</table><td colspan="11" class="text-center text-danger">❌ Lỗi tải dữ liệu<\/td><\/tr>'; }
 }
 
-async function fetchAllData() {
-    await Promise.all([fetchOrders(), fetchSupports()]);
-}
+async function fetchAllData() { await Promise.all([fetchOrders(), fetchSupports()]); }
 
 window.markAsDone = async function(type, row, uid) {
     if (!confirm('Xác nhận đã xử lý đơn hàng UID: ' + uid + '?')) return;
-    showLoading('Đang xử lý...');
+    showLoading(true, 'Đang xử lý...');
     try {
-        const url = `${GAS_URL}?action=markDone&type=${type}&row=${row}&uid=${encodeURIComponent(uid)}`;
-        const res = await fetch(url);
+        const res = await fetch(`${GAS_URL}?action=markDone&type=${type}&row=${row}&uid=${encodeURIComponent(uid)}`);
         const result = await res.json();
-        hideLoading();
+        showLoading(false);
         if (result.success) {
             showToast(`✅ Đã xử lý và xóa đơn hàng ${uid}`, 'success');
             await fetchAllData();
-        } else {
-            showToast(`❌ Lỗi: ${result.error || 'Không xác định'}`, 'error');
-        }
-    } catch(e) {
-        hideLoading();
-        showToast(`❌ Lỗi kết nối: ${e.message}`, 'error');
-    }
+        } else { showToast(`❌ Lỗi: Không thể xóa`, 'error'); }
+    } catch(e) { showLoading(false); showToast(`❌ Lỗi kết nối`, 'error'); }
 };
 
 function renderOrders() {
-    const tbody = document.getElementById('ordersBody');
-    const countSpan = document.getElementById('ordersCount');
-    if (!ordersData.length || ordersData.length <= 1) {
-        tbody.innerHTML = '<tr><td colspan="11" class="text-center">📭 Chưa có đơn hàng nào<\/td><\/tr>';
-        countSpan.innerText = '0';
-        return;
-    }
+    const tbody = document.getElementById('ordersBody'), countSpan = document.getElementById('ordersCount');
+    if (!ordersData.length || ordersData.length <= 1) { tbody.innerHTML = '<tr><td colspan="11" class="text-center">📭 Chưa có đơn hàng nào<\/td><\/tr>'; countSpan.innerText = '0'; return; }
     const rows = ordersData.slice(1);
     countSpan.innerText = rows.length;
     let html = '';
     for (let i = 0; i < rows.length; i++) {
         const r = rows[i];
-        const time = r[0] || '---';
-        const uid = r[1] || '---';
-        const messengers = r[2] || '---';
-        const gmail = r[3] || '---';
-        const service = r[4] || '---';
-        const desc = r[5] || '---';
-        const contact = r[6] || '---';
-        const images = r[7] || '';
-        let phone = r[8] || '---';
-        const status = r[9] || 'Mới';
-        if (phone && phone.toString().startsWith("'")) phone = phone.toString().substring(1);
+        const time = r[0] || '---', uid = r[1] || '---', messengers = r[2] || '---', gmail = r[3] || '---', service = r[4] || '---', desc = r[5] || '---', contact = r[6] || '---', images = r[7] || '', phone = (r[8] || '---').toString().startsWith("'") ? r[8].substring(1) : (r[8] || '---'), status = r[9] || 'Mới';
         let imgHtml = '---';
-        if (images) {
-            const links = images.split('\n');
-            const imgs = [];
-            for (let j = 0; j < links.length; j++) imgs.push(`<a href="${links[j]}" target="_blank" class="image-link">Xem ảnh</a>`);
-            imgHtml = imgs.join(' ');
-        }
-        const isNew = status === 'Mới';
-        const rowNum = i + 2;
-        html += `<tr>
-            <td style="white-space:nowrap;">${time}<\/td>
-            <td><code>${uid}<\/code><\/td>
-            <td>${messengers}<\/td>
-            <td>${gmail}<\/td>
-            <td>${service}<\/td>
-            <td style="max-width:250px; word-break:break-word;">${desc}<\/td>
-            <td>${contact}<\/td>
-            <td>${imgHtml}<\/td>
-            <td class="phone-text">${phone}<\/td>
-            <td><span class="status-new">${status}<\/span><\/td>
-            <td>${isNew ? `<button class="btn-done" onclick="markAsDone('order', ${rowNum}, '${uid}')">Đã xử lý</button>` : '✅'}<\/td>
-        <\/tr>`;
+        if (images) { const links = images.split('\n'); let imgs = []; for (let j = 0; j < links.length; j++) imgs.push(`<a href="${links[j]}" target="_blank" class="image-link">Xem ảnh</a>`); imgHtml = imgs.join(' '); }
+        const isNew = status === 'Mới', rowNum = i + 2;
+        html += `<tr><td style="white-space:nowrap;">${time}<\/td><td><code>${uid}<\/code><\/td><td>${messengers}<\/td><td>${gmail}<\/td><td>${service}<\/td><td style="max-width:250px; word-break:break-word;">${desc}<\/td><td>${contact}<\/td><td>${imgHtml}<\/td><td class="phone-text">${phone}<\/td><td><span class="status-new">${status}<\/span><\/td><td>${isNew ? `<button class="btn-done" onclick="markAsDone('order', ${rowNum}, '${uid}')">Đã xử lý</button>` : '✅'}<\/td><\/tr>`;
     }
     tbody.innerHTML = html;
 }
 
 function renderSupports() {
-    const tbody = document.getElementById('supportsBody');
-    const countSpan = document.getElementById('supportsCount');
-    if (!supportsData.length || supportsData.length <= 1) {
-        tbody.innerHTML = '<tr><td colspan="11" class="text-center">📭 Chưa có yêu cầu hỗ trợ nào<\/td><\/tr>';
-        countSpan.innerText = '0';
-        return;
-    }
+    const tbody = document.getElementById('supportsBody'), countSpan = document.getElementById('supportsCount');
+    if (!supportsData.length || supportsData.length <= 1) { tbody.innerHTML = '<tr><td colspan="11" class="text-center">📭 Chưa có yêu cầu hỗ trợ nào<\/td><\/tr>'; countSpan.innerText = '0'; return; }
     const rows = supportsData.slice(1);
     countSpan.innerText = rows.length;
     let html = '';
     for (let i = 0; i < rows.length; i++) {
         const r = rows[i];
-        const time = r[0] || '---';
-        const uid = r[1] || '---';
-        const messengers = r[2] || '---';
-        const gmail = r[3] || '---';
-        const type = r[4] || '---';
-        const desc = r[5] || '---';
-        const contact = r[6] || '---';
-        const images = r[7] || '';
-        let phone = r[8] || '---';
-        const status = r[9] || 'Mới';
-        if (phone && phone.toString().startsWith("'")) phone = phone.toString().substring(1);
+        const time = r[0] || '---', uid = r[1] || '---', messengers = r[2] || '---', gmail = r[3] || '---', type = r[4] || '---', desc = r[5] || '---', contact = r[6] || '---', images = r[7] || '', phone = (r[8] || '---').toString().startsWith("'") ? r[8].substring(1) : (r[8] || '---'), status = r[9] || 'Mới';
         let imgHtml = '---';
-        if (images) {
-            const links = images.split('\n');
-            const imgs = [];
-            for (let j = 0; j < links.length; j++) imgs.push(`<a href="${links[j]}" target="_blank" class="image-link">Xem ảnh</a>`);
-            imgHtml = imgs.join(' ');
-        }
-        const isNew = status === 'Mới';
-        const rowNum = i + 2;
-        html += `<tr>
-            <td style="white-space:nowrap;">${time}<\/td>
-            <td><code>${uid}<\/code><\/td>
-            <td>${messengers}<\/td>
-            <td>${gmail}<\/td>
-            <td>${type}<\/td>
-            <td style="max-width:250px; word-break:break-word;">${desc}<\/td>
-            <td>${contact}<\/td>
-            <td>${imgHtml}<\/td>
-            <td class="phone-text">${phone}<\/td>
-            <td><span class="status-new">${status}<\/span><\/td>
-            <td>${isNew ? `<button class="btn-done" onclick="markAsDone('support', ${rowNum}, '${uid}')">Đã xử lý</button>` : '✅'}<\/td>
-        <\/tr>`;
+        if (images) { const links = images.split('\n'); let imgs = []; for (let j = 0; j < links.length; j++) imgs.push(`<a href="${links[j]}" target="_blank" class="image-link">Xem ảnh</a>`); imgHtml = imgs.join(' '); }
+        const isNew = status === 'Mới', rowNum = i + 2;
+        html += `<tr><td style="white-space:nowrap;">${time}<\/td><td><code>${uid}<\/code><\/td><td>${messengers}<\/td><td>${gmail}<\/td><td>${type}<\/td><td style="max-width:250px; word-break:break-word;">${desc}<\/td><td>${contact}<\/td><td>${imgHtml}<\/td><td class="phone-text">${phone}<\/td><td><span class="status-new">${status}<\/span><\/td><td>${isNew ? `<button class="btn-done" onclick="markAsDone('support', ${rowNum}, '${uid}')">Đã xử lý</button>` : '✅'}<\/td><\/tr>`;
     }
     tbody.innerHTML = html;
 }
 
 function updateStats() {
-    const ordersCount = (ordersData.length - 1) || 0;
-    const supportsCount = (supportsData.length - 1) || 0;
+    const ordersCount = (ordersData.length - 1) || 0, supportsCount = (supportsData.length - 1) || 0;
     document.getElementById('statOrders').innerText = ordersCount;
     document.getElementById('statSupports').innerText = supportsCount;
     let pending = 0;
@@ -666,8 +332,7 @@ function updateStats() {
 }
 
 function switchTab(tab) {
-    const btns = document.querySelectorAll('.tab-btn');
-    btns.forEach(btn => btn.classList.remove('active'));
+    document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
     if (tab === 'orders') {
         document.querySelector('.tab-btn[data-tab="orders"]').classList.add('active');
         document.getElementById('ordersPanel').style.display = 'block';
@@ -679,23 +344,18 @@ function switchTab(tab) {
     }
 }
 
-// === GẮN SỰ KIỆN ===
 document.getElementById('loginBtn').onclick = handleLogin;
 document.getElementById('changePassBtn').onclick = handleChangePassword;
 document.getElementById('logoutBtnAdmin').onclick = handleLogout;
 document.getElementById('refreshBtn').onclick = () => { fetchAllData(); showToast('Đã làm mới dữ liệu', 'info'); };
-document.getElementById('enableNotifyBtn').onclick = enableNotifications;
 document.getElementById('passwordInput').addEventListener('keypress', (e) => { if (e.key === 'Enter') handleLogin(); });
-document.querySelectorAll('.tab-btn').forEach(btn => {
-    btn.onclick = () => switchTab(btn.getAttribute('data-tab'));
-});
+document.querySelectorAll('.tab-btn').forEach(btn => { btn.onclick = () => switchTab(btn.getAttribute('data-tab')); });
 
-// === KIỂM TRA ĐÃ ĐĂNG NHẬP CHƯA ===
 if (localStorage.getItem('sbidi_admin_logged') === 'true') {
     document.getElementById('loginView').style.display = 'none';
     document.getElementById('adminView').style.display = 'block';
     fetchAllData();
-    startAutoRefresh();
+    refreshInterval = setInterval(fetchAllData, 30000);
 }
 </script>
 </body>
