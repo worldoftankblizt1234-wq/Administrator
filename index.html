@@ -6,6 +6,70 @@
     <title>SBIDI ADMIN - Quản trị đơn hàng & hỗ trợ</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
+    
+    <!-- Firebase SDK -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+        import { getMessaging, getToken, onMessage } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-messaging.js";
+        
+        const firebaseConfig = {
+            apiKey: "AIzaSyDK7cPVIQjmrrj45DjvSjIJPmW2R05M_IA",
+            authDomain: "administrator2-cfe2d.firebaseapp.com",
+            projectId: "administrator2-cfe2d",
+            storageBucket: "administrator2-cfe2d.firebasestorage.app",
+            messagingSenderId: "144973962102",
+            appId: "1:144973962102:web:f4759dc0509cac503d3857",
+            measurementId: "G-6GYBSNB6N7"
+        };
+        
+        const app = initializeApp(firebaseConfig);
+        const messaging = getMessaging(app);
+        
+        // Yêu cầu quyền thông báo
+        async function requestNotificationPermission() {
+            try {
+                const permission = await Notification.requestPermission();
+                if (permission === 'granted') {
+                    console.log('✅ Đã được phép thông báo');
+                    
+                    // Lấy token để gửi thông báo từ server
+                    const token = await getToken(messaging, { 
+                        vapidKey: 'BLeFwn1T99rX0hV7lT8cQNqEwMxQyIw1pXwqyZvBnMoKrE5qYqZnF8pRqJxVjKvLwMxNtA' 
+                    });
+                    console.log('Token:', token);
+                    localStorage.setItem('fcm_token', token);
+                } else {
+                    console.log('❌ Không được phép thông báo');
+                }
+            } catch(err) {
+                console.error('Lỗi đăng ký thông báo:', err);
+            }
+        }
+        
+        // Lắng nghe thông báo khi web đang mở
+        onMessage(messaging, (payload) => {
+            console.log('Thông báo nhận được:', payload);
+            showToastNotification(payload.notification.title, payload.notification.body);
+        });
+        
+        // Hiển thị thông báo dạng toast
+        function showToastNotification(title, body) {
+            const toast = document.createElement('div');
+            toast.className = 'toast-notification warning';
+            toast.innerHTML = `
+                <div class="toast-header">
+                    <i class="bi bi-bell-fill"></i>
+                    <span>${title}</span>
+                </div>
+                <div class="toast-body">${body}</div>
+            `;
+            document.body.appendChild(toast);
+            setTimeout(() => toast.remove(), 5000);
+        }
+        
+        window.requestNotificationPermission = requestNotificationPermission;
+    </script>
+    
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { background: #0a0f1e; font-family: 'Inter', 'Segoe UI', sans-serif; color: #e2e8f0; min-height: 100vh; }
@@ -100,6 +164,7 @@
         td { padding: 12px 18px; border-bottom: 1px solid #334155; vertical-align: middle; }
         .btn-refresh { background: #3b82f6; padding: 8px 22px; border-radius: 40px; display: inline-block; width: auto; margin-right: 12px; border: none; color: white; cursor: pointer; }
         .btn-logout { background: #ef4444; padding: 8px 22px; border-radius: 40px; display: inline-block; width: auto; border: none; color: white; cursor: pointer; }
+        .btn-notify { background: #10b981; padding: 8px 22px; border-radius: 40px; display: inline-block; width: auto; margin-right: 12px; border: none; color: white; cursor: pointer; }
         .btn-done { background: #10b981; padding: 5px 14px; border-radius: 30px; font-size: 0.7rem; display: inline-block; width: auto; border: none; color: white; cursor: pointer; }
         .image-link { color: #38bdf8; text-decoration: none; font-size: 0.7rem; }
         .footer { text-align: center; margin-top: 40px; padding: 20px; color: #64748b; font-size: 0.75rem; border-top: 1px solid #334155; }
@@ -189,6 +254,7 @@
                     <p style="margin-top:4px; color:#94a3b8;">Quản lý đơn hàng & yêu cầu hỗ trợ</p>
                 </div>
                 <div>
+                    <button id="enableNotifyBtn" class="btn-notify"><i class="bi bi-bell-fill"></i> Bật thông báo</button>
                     <button id="refreshBtn" class="btn-refresh"><i class="bi bi-arrow-repeat"></i> Làm mới</button>
                     <button id="logoutBtnAdmin" class="btn-logout"><i class="bi bi-box-arrow-right"></i> Đăng xuất</button>
                 </div>
@@ -223,29 +289,29 @@
             <div style="overflow-x: auto;">
                 <table class="table table-dark">
                     <thead><tr><th>Thời gian</th><th>UID</th><th>Messengers</th><th>Gmail</th><th>Dịch vụ</th><th>Mô tả</th><th>Liên hệ</th><th>Ảnh</th><th>SĐT</th><th>Trạng thái</th><th></th></tr></thead>
-                    <tbody id="ordersBody"><tr><td colspan="11" class="text-center"><span class="spinner"></span> Đang tải...</td></tr></tbody>
-                </table>
-            </div>
-        </div>
+                    <tbody id="ordersBody"><tr><td colspan="11" class="text-center"><span class="spinner"></span> Đang tải...<\/td><\/tr><\/tbody>
+                <\/table>
+            <\/div>
+        <\/div>
 
         <div id="supportsPanel" class="table-card" style="display: none;">
             <div style="padding: 14px 18px; border-bottom: 1px solid #334155;">
                 <span><i class="bi bi-info-circle-fill"></i> Danh sách yêu cầu hỗ trợ</span>
                 <span id="supportsCount" class="badge-count">0</span>
-            </div>
+            <\/div>
             <div style="overflow-x: auto;">
                 <table class="table table-dark">
                     <thead><tr><th>Thời gian</th><th>UID</th><th>Messengers</th><th>Gmail</th><th>Loại</th><th>Mô tả</th><th>Liên hệ</th><th>Ảnh</th><th>SĐT</th><th>Trạng thái</th><th></th></tr></thead>
-                    <tbody id="supportsBody"><tr><td colspan="11" class="text-center"><span class="spinner"></span> Đang tải...</td></tr></tbody>
-                </table>
-            </div>
-        </div>
+                    <tbody id="supportsBody"><tr><td colspan="11" class="text-center"><span class="spinner"></span> Đang tải...<\/td><\/tr><\/tbody>
+                <\/table>
+            <\/div>
+        <\/div>
 
         <div class="footer">
             <i class="bi bi-shield-check"></i> Dữ liệu đồng bộ từ Google Sheets | SBIDI ADMIN
-        </div>
-    </div>
-</div>
+        <\/div>
+    <\/div>
+<\/div>
 
 <script>
 // === CẤU HÌNH ===
@@ -266,6 +332,16 @@ let currentUser = null;
 let ordersData = [], supportsData = [];
 let previousOrdersCount = 0, previousSupportsCount = 0;
 let refreshInterval = null;
+
+// === THÔNG BÁO TRÌNH DUYỆT ===
+async function enableNotifications() {
+    if (window.requestNotificationPermission) {
+        await window.requestNotificationPermission();
+        showToast('✅ Đã bật thông báo! Sẽ nhận thông báo khi có đơn mới.', 'success');
+    } else {
+        showToast('⚠️ Trình duyệt không hỗ trợ thông báo đẩy', 'warning');
+    }
+}
 
 function showToast(message, type = 'success') {
     const toast = document.createElement('div');
@@ -322,6 +398,12 @@ function handleLogin() {
             showToast('Đăng nhập thành công!', 'success');
             fetchAllData();
             startAutoRefresh();
+            // Tự động yêu cầu quyền thông báo sau khi đăng nhập
+            setTimeout(() => {
+                if (Notification.permission === 'default') {
+                    enableNotifications();
+                }
+            }, 1000);
         }
     } else {
         showToast('Sai mật khẩu!', 'error');
@@ -389,10 +471,25 @@ async function checkNewData() {
         const newSupportsCount = Array.isArray(newSupports) && newSupports.length > 1 ? newSupports.length - 1 : 0;
         
         if (newOrdersCount > previousOrdersCount && previousOrdersCount !== 0) {
-            showToast(`📢 Có ${newOrdersCount - previousOrdersCount} đơn hàng mới!`, 'warning');
+            const msg = `📢 Có ${newOrdersCount - previousOrdersCount} đơn hàng mới!`;
+            showToast(msg, 'warning');
+            // Gửi thông báo đẩy nếu đã được cấp quyền
+            if (Notification.permission === 'granted') {
+                new Notification('SBIDI ADMIN - Đơn hàng mới', {
+                    body: msg,
+                    icon: 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"%3E%3Crect width="100" height="100" fill="%238b5cf6"/%3E%3Ctext x="50" y="68" font-size="50" text-anchor="middle" fill="white" font-weight="bold"%3ES%3C/text%3E%3C/svg%3E'
+                });
+            }
         }
         if (newSupportsCount > previousSupportsCount && previousSupportsCount !== 0) {
-            showToast(`🛠️ Có ${newSupportsCount - previousSupportsCount} yêu cầu hỗ trợ mới!`, 'warning');
+            const msg = `🛠️ Có ${newSupportsCount - previousSupportsCount} yêu cầu hỗ trợ mới!`;
+            showToast(msg, 'warning');
+            if (Notification.permission === 'granted') {
+                new Notification('SBIDI ADMIN - Hỗ trợ mới', {
+                    body: msg,
+                    icon: 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"%3E%3Crect width="100" height="100" fill="%238b5cf6"/%3E%3Ctext x="50" y="68" font-size="50" text-anchor="middle" fill="white" font-weight="bold"%3ES%3C/text%3E%3C/svg%3E'
+                });
+            }
         }
         
         previousOrdersCount = newOrdersCount;
@@ -416,7 +513,7 @@ async function fetchOrders() {
         renderOrders();
         updateStats();
     } catch(e) {
-        document.getElementById('ordersBody').innerHTML = '<tr><td colspan="11" class="text-center text-danger">❌ Lỗi kết nối</td></tr>';
+        document.getElementById('ordersBody').innerHTML = '<tr><td colspan="11" class="text-center text-danger">❌ Lỗi kết nối<\/td><\/tr>';
     }
 }
 
@@ -429,7 +526,7 @@ async function fetchSupports() {
         renderSupports();
         updateStats();
     } catch(e) {
-        document.getElementById('supportsBody').innerHTML = '<tr><td colspan="11" class="text-center text-danger">❌ Lỗi kết nối</td></tr>';
+        document.getElementById('supportsBody').innerHTML = '<tr><td colspan="11" class="text-center text-danger">❌ Lỗi kết nối<\/td><\/tr>';
     }
 }
 
@@ -461,7 +558,7 @@ function renderOrders() {
     const tbody = document.getElementById('ordersBody');
     const countSpan = document.getElementById('ordersCount');
     if (!ordersData.length || ordersData.length <= 1) {
-        tbody.innerHTML = '<tr><td colspan="11" class="text-center">📭 Chưa có đơn hàng nào</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="11" class="text-center">📭 Chưa có đơn hàng nào<\/td><\/tr>';
         countSpan.innerText = '0';
         return;
     }
@@ -491,18 +588,18 @@ function renderOrders() {
         const isNew = status === 'Mới';
         const rowNum = i + 2;
         html += `<tr>
-            <td style="white-space:nowrap;">${time}</td>
-            <td><code>${uid}</code></td>
-            <td>${messengers}</td>
-            <td>${gmail}</td>
-            <td>${service}</td>
-            <td style="max-width:250px; word-break:break-word;">${desc}</td>
-            <td>${contact}</td>
-            <td>${imgHtml}</td>
-            <td class="phone-text">${phone}</td>
-            <td><span class="status-new">${status}</span></td>
-            <td>${isNew ? `<button class="btn-done" onclick="markAsDone('order', ${rowNum}, '${uid}')">Đã xử lý</button>` : '✅'}</td>
-        </tr>`;
+            <td style="white-space:nowrap;">${time}<\/td>
+            <td><code>${uid}<\/code><\/td>
+            <td>${messengers}<\/td>
+            <td>${gmail}<\/td>
+            <td>${service}<\/td>
+            <td style="max-width:250px; word-break:break-word;">${desc}<\/td>
+            <td>${contact}<\/td>
+            <td>${imgHtml}<\/td>
+            <td class="phone-text">${phone}<\/td>
+            <td><span class="status-new">${status}<\/span><\/td>
+            <td>${isNew ? `<button class="btn-done" onclick="markAsDone('order', ${rowNum}, '${uid}')">Đã xử lý</button>` : '✅'}<\/td>
+        <\/tr>`;
     }
     tbody.innerHTML = html;
 }
@@ -511,7 +608,7 @@ function renderSupports() {
     const tbody = document.getElementById('supportsBody');
     const countSpan = document.getElementById('supportsCount');
     if (!supportsData.length || supportsData.length <= 1) {
-        tbody.innerHTML = '<tr><td colspan="11" class="text-center">📭 Chưa có yêu cầu hỗ trợ nào</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="11" class="text-center">📭 Chưa có yêu cầu hỗ trợ nào<\/td><\/tr>';
         countSpan.innerText = '0';
         return;
     }
@@ -541,18 +638,18 @@ function renderSupports() {
         const isNew = status === 'Mới';
         const rowNum = i + 2;
         html += `<tr>
-            <td style="white-space:nowrap;">${time}</td>
-            <td><code>${uid}</code></td>
-            <td>${messengers}</td>
-            <td>${gmail}</td>
-            <td>${type}</td>
-            <td style="max-width:250px; word-break:break-word;">${desc}</td>
-            <td>${contact}</td>
-            <td>${imgHtml}</td>
-            <td class="phone-text">${phone}</td>
-            <td><span class="status-new">${status}</span></td>
-            <td>${isNew ? `<button class="btn-done" onclick="markAsDone('support', ${rowNum}, '${uid}')">Đã xử lý</button>` : '✅'}</td>
-        </tr>`;
+            <td style="white-space:nowrap;">${time}<\/td>
+            <td><code>${uid}<\/code><\/td>
+            <td>${messengers}<\/td>
+            <td>${gmail}<\/td>
+            <td>${type}<\/td>
+            <td style="max-width:250px; word-break:break-word;">${desc}<\/td>
+            <td>${contact}<\/td>
+            <td>${imgHtml}<\/td>
+            <td class="phone-text">${phone}<\/td>
+            <td><span class="status-new">${status}<\/span><\/td>
+            <td>${isNew ? `<button class="btn-done" onclick="markAsDone('support', ${rowNum}, '${uid}')">Đã xử lý</button>` : '✅'}<\/td>
+        <\/tr>`;
     }
     tbody.innerHTML = html;
 }
@@ -587,6 +684,7 @@ document.getElementById('loginBtn').onclick = handleLogin;
 document.getElementById('changePassBtn').onclick = handleChangePassword;
 document.getElementById('logoutBtnAdmin').onclick = handleLogout;
 document.getElementById('refreshBtn').onclick = () => { fetchAllData(); showToast('Đã làm mới dữ liệu', 'info'); };
+document.getElementById('enableNotifyBtn').onclick = enableNotifications;
 document.getElementById('passwordInput').addEventListener('keypress', (e) => { if (e.key === 'Enter') handleLogin(); });
 document.querySelectorAll('.tab-btn').forEach(btn => {
     btn.onclick = () => switchTab(btn.getAttribute('data-tab'));
