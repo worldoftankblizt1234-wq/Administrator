@@ -37,11 +37,6 @@
         @keyframes spin {
             to { transform: rotate(360deg); }
         }
-        @keyframes ping {
-            0% { transform: scale(1); opacity: 1; }
-            75% { transform: scale(1.5); opacity: 0.5; }
-            100% { transform: scale(2); opacity: 0; }
-        }
         
         /* Login Container */
         .login-container, .changepass-container {
@@ -129,7 +124,9 @@
         th { background: #0f172a; padding: 14px 18px; text-align: left; color: #c084fc; position: sticky; top: 0; white-space: nowrap; }
         td { padding: 12px 18px; border-bottom: 1px solid #334155; vertical-align: middle; }
         .btn-refresh { background: #3b82f6; padding: 8px 22px; border-radius: 40px; margin-bottom: 16px; display: inline-block; width: auto; margin-right: 12px; }
-        .btn-logout { background: #ef4444; padding: 8px 22px; border-radius: 40px; display: inline-block; width: auto; }
+        .btn-logout { background: #ef4444; padding: 8px 22px; border-radius: 40px; display: inline-block; width: auto; margin-right: 12px; }
+        .btn-install { background: #10b981; padding: 8px 22px; border-radius: 40px; display: inline-block; width: auto; }
+        .btn-install:hover { background: #059669; }
         .btn-done { background: #10b981; padding: 5px 14px; border-radius: 30px; font-size: 0.7rem; display: inline-block; width: auto; margin: 0; }
         .btn-done:hover { background: #059669; }
         .image-link { color: #38bdf8; text-decoration: none; font-size: 0.7rem; }
@@ -200,34 +197,10 @@
             animation: spin 0.8s linear infinite;
         }
         
-        /* PWA install prompt */
-        .install-prompt {
-            position: fixed;
-            bottom: 20px;
-            left: 20px;
-            right: 20px;
-            background: #1e293b;
-            border-radius: 20px;
-            padding: 16px 20px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            flex-wrap: wrap;
-            gap: 12px;
-            z-index: 1500;
-            border: 1px solid #8b5cf6;
-            animation: fadeIn 0.3s ease;
-        }
-        .install-prompt button {
-            width: auto;
-            padding: 8px 20px;
-            background: #8b5cf6;
-            margin: 0;
-        }
-        
         @media (max-width: 768px) {
             .stat-card { width: 100%; margin-right: 0; margin-bottom: 12px; }
             .toast-notification { left: 20px; right: 20px; min-width: auto; }
+            .btn-refresh, .btn-logout, .btn-install { margin-bottom: 8px; }
         }
     </style>
 </head>
@@ -267,6 +240,7 @@
                 </div>
                 <div>
                     <button id="refreshBtn" class="btn-refresh"><i class="bi bi-arrow-repeat"></i> Làm mới</button>
+                    <button id="installAppBtn" class="btn-install"><i class="bi bi-download"></i> Cài đặt App</button>
                     <button id="logoutBtnAdmin" class="btn-logout"><i class="bi bi-box-arrow-right"></i> Đăng xuất</button>
                 </div>
             </div>
@@ -300,35 +274,29 @@
             <div style="overflow-x: auto;">
                 <table class="table table-dark">
                     <thead><tr><th>Thời gian</th><th>UID</th><th>Messengers</th><th>Gmail</th><th>Dịch vụ</th><th>Mô tả</th><th>Liên hệ</th><th>Ảnh</th><th>SĐT</th><th>Trạng thái</th><th></th></tr></thead>
-                    <tbody id="ordersBody"><tr><td colspan="11" class="text-center"><span class="spinner"></span> Đang tải...</td></tr></tbody>
-                </table>
-            </div>
-        </div>
+                    <tbody id="ordersBody"><tr><td colspan="11" class="text-center"><span class="spinner"></span> Đang tải...<\/td><\/tr><\/tbody>
+                <\/table>
+            <\/div>
+        <\/div>
 
         <div id="supportsPanel" class="table-card" style="display: none;">
             <div style="padding: 14px 18px; border-bottom: 1px solid #334155;">
                 <span><i class="bi bi-info-circle-fill"></i> Danh sách yêu cầu hỗ trợ</span>
                 <span id="supportsCount" class="badge-count">0</span>
-            </div>
+            <\/div>
             <div style="overflow-x: auto;">
                 <table class="table table-dark">
                     <thead><tr><th>Thời gian</th><th>UID</th><th>Messengers</th><th>Gmail</th><th>Loại</th><th>Mô tả</th><th>Liên hệ</th><th>Ảnh</th><th>SĐT</th><th>Trạng thái</th><th></th></tr></thead>
-                    <tbody id="supportsBody"><tr><td colspan="11" class="text-center"><span class="spinner"></span> Đang tải...</td></tr></tbody>
-                </table>
-            </div>
-        </div>
+                    <tbody id="supportsBody"><tr><td colspan="11" class="text-center"><span class="spinner"></span> Đang tải...<\/td><\/tr><\/tbody>
+                <\/table>
+            <\/div>
+        <\/div>
 
         <div class="footer">
             <i class="bi bi-shield-check"></i> Dữ liệu đồng bộ từ Google Sheets | SBIDI ADMIN
-        </div>
-    </div>
-</div>
-
-<!-- PWA Install Prompt -->
-<div id="installPrompt" class="install-prompt" style="display: none;">
-    <span><i class="bi bi-download"></i> Cài đặt SBIDI ADMIN như ứng dụng</span>
-    <button id="installBtn">Cài đặt</button>
-</div>
+        <\/div>
+    <\/div>
+<\/div>
 
 <script>
 // === CẤU HÌNH ===
@@ -346,7 +314,28 @@ let previousPending = 0;
 let refreshInterval = null;
 let deferredPrompt = null;
 
-// === TOAST NOTIFICATION ===
+// === PWA INSTALL ===
+window.addEventListener('beforeinstallprompt', (e) => {
+    e.preventDefault();
+    deferredPrompt = e;
+    document.getElementById('installAppBtn').style.display = 'inline-block';
+});
+
+async function installApp() {
+    if (deferredPrompt) {
+        deferredPrompt.prompt();
+        const { outcome } = await deferredPrompt.userChoice;
+        if (outcome === 'accepted') {
+            showToast('✅ Đã cài đặt ứng dụng thành công!', 'success');
+        }
+        deferredPrompt = null;
+        document.getElementById('installAppBtn').style.display = 'none';
+    } else {
+        showToast('⚠️ Trình duyệt không hỗ trợ cài đặt ứng dụng hoặc đã được cài đặt', 'warning');
+    }
+}
+
+// === TOAST ===
 function showToast(message, type = 'success') {
     const toast = document.createElement('div');
     toast.className = `toast-notification ${type}`;
@@ -383,25 +372,6 @@ function hideLoading() {
     const overlay = document.getElementById('loadingOverlay');
     if (overlay) overlay.style.display = 'none';
 }
-
-// === PWA INSTALL ===
-window.addEventListener('beforeinstallprompt', (e) => {
-    e.preventDefault();
-    deferredPrompt = e;
-    document.getElementById('installPrompt').style.display = 'flex';
-});
-
-document.getElementById('installBtn')?.addEventListener('click', async () => {
-    if (deferredPrompt) {
-        deferredPrompt.prompt();
-        const { outcome } = await deferredPrompt.userChoice;
-        if (outcome === 'accepted') {
-            showToast('✅ Đã cài đặt ứng dụng thành công!', 'success');
-        }
-        deferredPrompt = null;
-        document.getElementById('installPrompt').style.display = 'none';
-    }
-});
 
 // === ĐĂNG NHẬP ===
 async function handleLogin() {
@@ -488,7 +458,7 @@ async function fetchOrders() {
         updateStats();
     } catch(e) {
         console.error(e);
-        document.getElementById('ordersBody').innerHTML = `<tr><td colspan="11" class="text-center text-danger">❌ Lỗi: ${e.message}</td></tr>`;
+        document.getElementById('ordersBody').innerHTML = `<tr><td colspan="11" class="text-center text-danger">❌ Lỗi: ${e.message}<\/td><\/tr>`;
         showToast('Lỗi kết nối đến server', 'error');
     }
 }
@@ -502,7 +472,7 @@ async function fetchSupports() {
         updateStats();
     } catch(e) {
         console.error(e);
-        document.getElementById('supportsBody').innerHTML = `<tr><td colspan="11" class="text-center text-danger">❌ Lỗi: ${e.message}</td></tr>`;
+        document.getElementById('supportsBody').innerHTML = `<tr><td colspan="11" class="text-center text-danger">❌ Lỗi: ${e.message}<\/td><\/tr>`;
     }
 }
 
@@ -536,7 +506,7 @@ function renderOrders() {
     const tbody = document.getElementById('ordersBody');
     const countSpan = document.getElementById('ordersCount');
     if (!ordersData.length || ordersData.length <= 1) {
-        tbody.innerHTML = '<tr><td colspan="11" class="text-center">📭 Chưa có đơn hàng nào</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="11" class="text-center">📭 Chưa có đơn hàng nào<\/td><\/tr>';
         countSpan.innerText = '0';
         return;
     }
@@ -551,17 +521,17 @@ function renderOrders() {
         const isNew = status === 'Mới';
         const rowNum = i + 2;
         html += `<tr>
-            <td style="white-space:nowrap;">${time}</td>
-            <td><code>${uid}</code></td>
-            <td>${messengers}</td>
-            <td>${gmail}</td>
-            <td>${service}</td>
-            <td style="max-width:250px; word-break:break-word;">${desc}</td>
-            <td>${contact}</td>
-            <td>${imgHtml}</td>
-            <td class="phone-text">${phone}</td>
-            <td><span class="status-new">${status}</span></td>
-            <td>${isNew ? `<button class="btn-done" onclick="markAsDone('order', ${rowNum}, '${uid}')">Đã xử lý</button>` : '✅'}</td>
+            <td style="white-space:nowrap;">${time}<\/td>
+            <td><code>${uid}<\/code><\/td>
+            <td>${messengers}<\/td>
+            <td>${gmail}<\/td>
+            <td>${service}<\/td>
+            <td style="max-width:250px; word-break:break-word;">${desc}<\/td>
+            <td>${contact}<\/td>
+            <td>${imgHtml}<\/td>
+            <td class="phone-text">${phone}<\/td>
+            <td><span class="status-new">${status}<\/span><\/td>
+            <td>${isNew ? `<button class="btn-done" onclick="markAsDone('order', ${rowNum}, '${uid}')">Đã xử lý</button>` : '✅'}<\/td>
         </tr>`;
     }
     tbody.innerHTML = html;
@@ -571,7 +541,7 @@ function renderSupports() {
     const tbody = document.getElementById('supportsBody');
     const countSpan = document.getElementById('supportsCount');
     if (!supportsData.length || supportsData.length <= 1) {
-        tbody.innerHTML = '<tr><td colspan="11" class="text-center">📭 Chưa có yêu cầu hỗ trợ nào</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="11" class="text-center">📭 Chưa có yêu cầu hỗ trợ nào<\/td><\/tr>';
         countSpan.innerText = '0';
         return;
     }
@@ -586,17 +556,17 @@ function renderSupports() {
         const isNew = status === 'Mới';
         const rowNum = i + 2;
         html += `<tr>
-            <td style="white-space:nowrap;">${time}</td>
-            <td><code>${uid}</code></td>
-            <td>${messengers}</td>
-            <td>${gmail}</td>
-            <td>${type}</td>
-            <td style="max-width:250px; word-break:break-word;">${desc}</td>
-            <td>${contact}</td>
-            <td>${imgHtml}</td>
-            <td class="phone-text">${phone}</td>
-            <td><span class="status-new">${status}</span></td>
-            <td>${isNew ? `<button class="btn-done" onclick="markAsDone('support', ${rowNum}, '${uid}')">Đã xử lý</button>` : '✅'}</td>
+            <td style="white-space:nowrap;">${time}<\/td>
+            <td><code>${uid}<\/code><\/td>
+            <td>${messengers}<\/td>
+            <td>${gmail}<\/td>
+            <td>${type}<\/td>
+            <td style="max-width:250px; word-break:break-word;">${desc}<\/td>
+            <td>${contact}<\/td>
+            <td>${imgHtml}<\/td>
+            <td class="phone-text">${phone}<\/td>
+            <td><span class="status-new">${status}<\/span><\/td>
+            <td>${isNew ? `<button class="btn-done" onclick="markAsDone('support', ${rowNum}, '${uid}')">Đã xử lý</button>` : '✅'}<\/td>
         </tr>`;
     }
     tbody.innerHTML = html;
@@ -635,6 +605,7 @@ document.getElementById('loginBtn').onclick = handleLogin;
 document.getElementById('changePassBtn').onclick = handleChangePassword;
 document.getElementById('logoutBtnAdmin').onclick = handleLogout;
 document.getElementById('refreshBtn').onclick = () => { fetchAllData(); showToast('Đang làm mới dữ liệu...', 'info'); };
+document.getElementById('installAppBtn').onclick = installApp;
 document.querySelectorAll('.tab-btn').forEach(btn => { btn.onclick = () => switchTab(btn.getAttribute('data-tab')); });
 document.getElementById('passwordInput').addEventListener('keypress', (e) => { if (e.key === 'Enter') handleLogin(); });
 
@@ -646,10 +617,15 @@ if (localStorage.getItem('sbidi_admin_logged') === 'true') {
     startAutoRefresh();
 }
 
-// === KIỂM TRA PWA ===
-if (window.matchMedia('(display-mode: standalone)').matches) {
-    console.log('Đang chạy dưới dạng ứng dụng');
+// === KIỂM TRA TRÌNH DUYỆT HỖ TRỢ PWA ===
+if (!window.matchMedia('(display-mode: standalone)').matches) {
+    // Ẩn nút cài đặt nếu không hỗ trợ hoặc đã cài
+    setTimeout(() => {
+        if (!deferredPrompt) {
+            document.getElementById('installAppBtn').style.display = 'none';
+        }
+    }, 1000);
 }
-</script>
-</body>
-</html>
+<\/script>
+<\/body>
+<\/html>
