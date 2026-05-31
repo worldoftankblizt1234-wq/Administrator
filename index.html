@@ -2,110 +2,483 @@
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes, viewport-fit=cover">
     <title>SBIDI ADMIN - Quản trị đơn hàng & hỗ trợ</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
+    
+    <!-- PWA Manifest -->
+    <link rel="manifest" href="data:application/manifest+json,{
+        %22name%22:%22SBIDI%20ADMIN%22,
+        %22short_name%22:%22SBIDI%20ADMIN%22,
+        %22description%22:%22Qu%E1%BA%A3n%20tr%E1%BB%8B%20%C4%91%C6%A1n%20h%C3%A0ng%20v%C3%A0%20y%C3%AAu%20c%E1%BA%A7u%20h%E1%BB%97%20tr%E1%BB%A3%22,
+        %22start_url%22:%22.%22,
+        %22display%22:%22standalone%22,
+        %22theme_color%22:%22%230f172a%22,
+        %22background_color%22:%22%230a0f1e%22,
+        %22icons%22:[
+            {%22src%22:%22data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' fill='%238b5cf6'/%3E%3Ctext x='50' y='68' font-size='50' text-anchor='middle' fill='white' font-weight='bold'%3ES%3C/text%3E%3C/svg%3E%22,%22sizes%22:%22512x512%22,%22type%22:%22image/svg+xml%22%7D
+        ]
+    }">
+    
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { background: #0a0f1e; font-family: 'Segoe UI', sans-serif; color: #e2e8f0; padding: 20px; }
-        .admin-container { max-width: 1400px; margin: 0 auto; }
-        .header { background: linear-gradient(135deg, #0f172a, #1e1b4b); padding: 20px 24px; border-radius: 16px; margin-bottom: 24px; border-bottom: 2px solid #8b5cf6; }
-        .stat-card { background: #1e293b; border-radius: 16px; padding: 16px 20px; display: inline-block; width: calc(33% - 16px); margin-right: 16px; vertical-align: top; }
-        .stat-value { font-size: 2rem; font-weight: 800; color: #c084fc; }
-        .tab-bar { display: flex; gap: 12px; margin-bottom: 24px; border-bottom: 1px solid #334155; padding-bottom: 8px; flex-wrap: wrap; }
-        .tab-btn { background: transparent; border: none; padding: 10px 24px; font-weight: 600; font-size: 1rem; color: #94a3b8; cursor: pointer; border-radius: 30px; transition: 0.2s; }
+        body { background: #0a0f1e; font-family: 'Inter', 'Segoe UI', sans-serif; color: #e2e8f0; min-height: 100vh; }
+        
+        /* Animation */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes slideIn {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        @keyframes ping {
+            0% { transform: scale(1); opacity: 1; }
+            75% { transform: scale(1.5); opacity: 0.5; }
+            100% { transform: scale(2); opacity: 0; }
+        }
+        
+        /* Login Container */
+        .login-container, .changepass-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background: radial-gradient(circle at 30% 10%, #0f172a 0%, #030712 100%);
+            position: relative;
+            overflow: hidden;
+        }
+        .login-card, .changepass-card {
+            background: rgba(30,41,59,0.8);
+            backdrop-filter: blur(20px);
+            border-radius: 32px;
+            padding: 48px 40px;
+            width: 100%;
+            max-width: 420px;
+            border: 1px solid rgba(139,92,246,0.3);
+            box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5);
+            animation: fadeIn 0.6s ease-out;
+            position: relative;
+            z-index: 1;
+        }
+        .login-card h3, .changepass-card h3 {
+            background: linear-gradient(135deg, #c084fc, #818cf8);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            margin-bottom: 28px;
+            text-align: center;
+            font-weight: 800;
+            font-size: 1.8rem;
+        }
+        .changepass-card h3 {
+            background: linear-gradient(135deg, #fbbf24, #f59e0b);
+        }
+        input {
+            width: 100%;
+            padding: 14px 18px;
+            background: rgba(15,23,42,0.8);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 16px;
+            color: white;
+            margin-bottom: 20px;
+            font-size: 1rem;
+            transition: all 0.3s;
+        }
+        input:focus {
+            outline: none;
+            border-color: #8b5cf6;
+            box-shadow: 0 0 0 3px rgba(139,92,246,0.2);
+        }
+        button {
+            width: 100%;
+            padding: 14px;
+            background: linear-gradient(135deg, #8b5cf6, #7c3aed);
+            border: none;
+            border-radius: 16px;
+            color: white;
+            font-weight: 700;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px -5px rgba(139,92,246,0.4);
+        }
+        .error-msg { color: #ef4444; font-size: 0.8rem; margin-top: 12px; text-align: center; }
+        .success-msg { color: #10b981; font-size: 0.8rem; margin-top: 12px; text-align: center; }
+        
+        /* Admin Panel */
+        .admin-container { max-width: 1600px; margin: 0 auto; padding: 20px; animation: fadeIn 0.5s ease-out; }
+        .header { background: linear-gradient(135deg, #0f172a, #1e1b4b); padding: 20px 28px; border-radius: 24px; margin-bottom: 28px; border-bottom: 2px solid #8b5cf6; }
+        .stat-card { background: #1e293b; border-radius: 20px; padding: 20px; display: inline-block; width: calc(33% - 16px); margin-right: 16px; transition: all 0.3s; border: 1px solid #334155; cursor: pointer; }
+        .stat-card:hover { transform: translateY(-4px); border-color: #8b5cf6; }
+        .stat-value { font-size: 2.2rem; font-weight: 800; color: #c084fc; }
+        .tab-bar { display: flex; gap: 12px; margin-bottom: 24px; border-bottom: 1px solid #334155; padding-bottom: 12px; flex-wrap: wrap; }
+        .tab-btn { background: transparent; border: none; padding: 10px 28px; font-weight: 600; font-size: 0.95rem; color: #94a3b8; cursor: pointer; border-radius: 40px; transition: all 0.3s; }
+        .tab-btn:hover { color: white; background: rgba(139,92,246,0.1); }
         .tab-btn.active { background: #8b5cf6; color: white; }
-        .table-card { background: #1e293b; border-radius: 20px; overflow: auto; border: 1px solid #334155; margin-top: 20px; }
+        .table-card { background: #1e293b; border-radius: 24px; overflow: auto; border: 1px solid #334155; margin-top: 20px; }
         table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
-        th { background: #0f172a; padding: 12px 16px; text-align: left; color: #c084fc; position: sticky; top: 0; white-space: nowrap; }
-        td { padding: 10px 16px; border-bottom: 1px solid #334155; vertical-align: middle; }
-        .btn-refresh { background: #3b82f6; color: white; padding: 8px 20px; border-radius: 30px; border: none; cursor: pointer; font-weight: 600; margin-bottom: 16px; }
-        .btn-done { background: #10b981; color: white; padding: 6px 14px; border-radius: 20px; border: none; cursor: pointer; font-weight: 600; font-size: 0.7rem; margin: 2px; }
+        th { background: #0f172a; padding: 14px 18px; text-align: left; color: #c084fc; position: sticky; top: 0; white-space: nowrap; }
+        td { padding: 12px 18px; border-bottom: 1px solid #334155; vertical-align: middle; }
+        .btn-refresh { background: #3b82f6; padding: 8px 22px; border-radius: 40px; margin-bottom: 16px; display: inline-block; width: auto; margin-right: 12px; }
+        .btn-logout { background: #ef4444; padding: 8px 22px; border-radius: 40px; display: inline-block; width: auto; }
+        .btn-done { background: #10b981; padding: 5px 14px; border-radius: 30px; font-size: 0.7rem; display: inline-block; width: auto; margin: 0; }
         .btn-done:hover { background: #059669; }
         .image-link { color: #38bdf8; text-decoration: none; font-size: 0.7rem; }
-        .footer { text-align: center; margin-top: 30px; padding: 16px; color: #64748b; font-size: 0.75rem; }
-        .spinner { display: inline-block; width: 16px; height: 16px; border: 2px solid #fff; border-top-color: transparent; border-radius: 50%; animation: spin 0.6s linear infinite; margin-right: 6px; }
-        @keyframes spin { to { transform: rotate(360deg); } }
-        .badge-count { background: #8b5cf6; padding: 2px 8px; border-radius: 20px; font-size: 0.7rem; margin-left: 8px; }
-        .status-new { background: #f59e0b20; color: #f59e0b; padding: 4px 10px; border-radius: 20px; font-size: 0.7rem; font-weight: 600; display: inline-block; }
-        .phone-text { font-family: monospace; font-size: 0.8rem; }
-        .notification { position: fixed; top: 20px; right: 20px; background: #10b981; color: white; padding: 12px 20px; border-radius: 12px; z-index: 1000; animation: slideIn 0.3s ease; }
-        @keyframes slideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
-        .error { background: #ef4444; }
+        .image-link:hover { text-decoration: underline; }
+        .footer { text-align: center; margin-top: 40px; padding: 20px; color: #64748b; font-size: 0.75rem; border-top: 1px solid #334155; }
+        .spinner { display: inline-block; width: 18px; height: 18px; border: 2px solid #fff; border-top-color: transparent; border-radius: 50%; animation: spin 0.6s linear infinite; margin-right: 8px; }
+        .badge-count { background: #8b5cf6; padding: 2px 10px; border-radius: 30px; font-size: 0.7rem; margin-left: 10px; }
+        .status-new { background: rgba(245,158,11,0.15); color: #f59e0b; padding: 4px 12px; border-radius: 30px; font-size: 0.7rem; display: inline-block; }
+        .phone-text { font-family: monospace; font-size: 0.8rem; background: rgba(0,0,0,0.2); padding: 2px 6px; border-radius: 8px; }
+        .flex-between { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; }
         .text-center { text-align: center; }
+        
+        /* Toast Notification */
+        .toast-notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            min-width: 280px;
+            max-width: 400px;
+            background: #1e293b;
+            border-radius: 16px;
+            padding: 0;
+            z-index: 2000;
+            animation: slideIn 0.3s ease;
+            box-shadow: 0 10px 25px -5px rgba(0,0,0,0.3);
+            border-left: 4px solid;
+            overflow: hidden;
+        }
+        .toast-header {
+            padding: 12px 16px;
+            background: rgba(0,0,0,0.2);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-weight: 600;
+        }
+        .toast-body {
+            padding: 12px 16px;
+            font-size: 0.85rem;
+        }
+        .toast-notification.success { border-left-color: #10b981; }
+        .toast-notification.error { border-left-color: #ef4444; }
+        .toast-notification.warning { border-left-color: #f59e0b; }
+        .toast-notification.info { border-left-color: #3b82f6; }
+        
+        /* Loading overlay */
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.7);
+            backdrop-filter: blur(8px);
+            z-index: 3000;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            gap: 16px;
+        }
+        .loading-spinner {
+            width: 50px;
+            height: 50px;
+            border: 3px solid rgba(139,92,246,0.3);
+            border-top-color: #8b5cf6;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+        
+        /* PWA install prompt */
+        .install-prompt {
+            position: fixed;
+            bottom: 20px;
+            left: 20px;
+            right: 20px;
+            background: #1e293b;
+            border-radius: 20px;
+            padding: 16px 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 12px;
+            z-index: 1500;
+            border: 1px solid #8b5cf6;
+            animation: fadeIn 0.3s ease;
+        }
+        .install-prompt button {
+            width: auto;
+            padding: 8px 20px;
+            background: #8b5cf6;
+            margin: 0;
+        }
+        
+        @media (max-width: 768px) {
+            .stat-card { width: 100%; margin-right: 0; margin-bottom: 12px; }
+            .toast-notification { left: 20px; right: 20px; min-width: auto; }
+        }
     </style>
 </head>
 <body>
 
-<div class="admin-container">
-    <div class="header">
-        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;">
-            <div>
-                <h2><i class="bi bi-speedometer2"></i> SBIDI ADMIN</h2>
-                <p>Quản lý đơn hàng & yêu cầu hỗ trợ</p>
+<div id="app">
+    <!-- Login View -->
+    <div id="loginView" class="login-container">
+        <div class="login-card">
+            <h3><i class="bi bi-shield-lock-fill"></i> SBIDI ADMIN</h3>
+            <input type="password" id="passwordInput" placeholder="🔐 Nhập mật khẩu quản trị" autocomplete="off">
+            <button id="loginBtn"><i class="bi bi-box-arrow-in-right"></i> Đăng nhập</button>
+            <div id="loginError" class="error-msg"></div>
+        </div>
+    </div>
+
+    <!-- Change Password View -->
+    <div id="changepassView" class="changepass-container" style="display: none;">
+        <div class="changepass-card">
+            <h3><i class="bi bi-key-fill"></i> Đổi mật khẩu</h3>
+            <p style="color:#94a3b8; text-align:center; margin-bottom:24px;">Lần đầu đăng nhập, vui lòng đổi mật khẩu</p>
+            <input type="password" id="newPassInput" placeholder="📝 Mật khẩu mới (6+ ký tự)">
+            <input type="password" id="confirmPassInput" placeholder="✓ Xác nhận mật khẩu mới">
+            <button id="changePassBtn"><i class="bi bi-check-lg"></i> Cập nhật mật khẩu</button>
+            <div id="changePassError" class="error-msg"></div>
+            <div id="changePassSuccess" class="success-msg"></div>
+        </div>
+    </div>
+
+    <!-- Admin View -->
+    <div id="adminView" class="admin-container" style="display: none;">
+        <div class="header">
+            <div class="flex-between">
+                <div>
+                    <h2 style="margin:0;"><i class="bi bi-speedometer2"></i> SBIDI ADMIN</h2>
+                    <p style="margin:0; color:#94a3b8; margin-top:4px;">Quản lý đơn hàng & yêu cầu hỗ trợ</p>
+                </div>
+                <div>
+                    <button id="refreshBtn" class="btn-refresh"><i class="bi bi-arrow-repeat"></i> Làm mới</button>
+                    <button id="logoutBtnAdmin" class="btn-logout"><i class="bi bi-box-arrow-right"></i> Đăng xuất</button>
+                </div>
             </div>
-            <div>
-                <button class="btn-refresh" id="refreshBtn"><i class="bi bi-arrow-repeat"></i> Làm mới</button>
+        </div>
+
+        <div class="stats-wrapper" style="margin-bottom: 28px;">
+            <div class="stat-card" onclick="showToast('Tổng số đơn hàng: ' + document.getElementById('statOrders').innerText, 'info')">
+                <div><i class="bi bi-cart-fill"></i> Đơn hàng</div>
+                <div class="stat-value" id="statOrders">0</div>
+            </div>
+            <div class="stat-card" onclick="showToast('Tổng yêu cầu hỗ trợ: ' + document.getElementById('statSupports').innerText, 'info')">
+                <div><i class="bi bi-headset"></i> Yêu cầu hỗ trợ</div>
+                <div class="stat-value" id="statSupports">0</div>
+            </div>
+            <div class="stat-card" onclick="showToast('Số đơn chờ xử lý: ' + document.getElementById('statPending').innerText, 'warning')">
+                <div><i class="bi bi-hourglass-split"></i> Chờ xử lý</div>
+                <div class="stat-value" id="statPending">0</div>
             </div>
         </div>
-    </div>
 
-    <div class="stats-wrapper" style="margin-bottom: 24px;">
-        <div class="stat-card"><div><i class="bi bi-cart"></i> Đơn hàng</div><div class="stat-value" id="statOrders">0</div></div>
-        <div class="stat-card"><div><i class="bi bi-tools"></i> Yêu cầu hỗ trợ</div><div class="stat-value" id="statSupports">0</div></div>
-        <div class="stat-card"><div><i class="bi bi-hourglass-split"></i> Chờ xử lý</div><div class="stat-value" id="statPending">0</div></div>
-    </div>
-
-    <div class="tab-bar">
-        <button class="tab-btn active" data-tab="orders"><i class="bi bi-cart"></i> Đơn đặt App</button>
-        <button class="tab-btn" data-tab="supports"><i class="bi bi-headset"></i> Yêu cầu hỗ trợ</button>
-    </div>
-
-    <div id="ordersTab" class="table-card">
-        <div style="padding: 12px 16px; border-bottom: 1px solid #334155;">
-            <span><i class="bi bi-info-circle"></i> Danh sách đơn hàng</span>
-            <span id="ordersCount" class="badge-count">0</span>
+        <div class="tab-bar">
+            <button class="tab-btn active" data-tab="orders"><i class="bi bi-cart"></i> Đơn đặt App</button>
+            <button class="tab-btn" data-tab="supports"><i class="bi bi-tools"></i> Yêu cầu hỗ trợ</button>
         </div>
-        <div style="overflow-x: auto;">
-            <table class="table table-dark table-striped">
-                <thead>
-                    <tr><th>Thời gian</th><th>UID</th><th>Messengers</th><th>Gmail</th><th>Dịch vụ</th><th>Mô tả</th><th>Liên hệ</th><th>Ảnh</th><th>SĐT Zalo</th><th>Trạng thái</th><th>Thao tác</th></tr>
-                </thead>
-                <tbody id="ordersTbody">
-                    <tr><td colspan="11" class="text-center"><span class="spinner"></span> Đang tải...</td></tr>
-                </tbody>
-            </table>
-        </div>
-    </div>
 
-    <div id="supportsTab" class="table-card" style="display:none;">
-        <div style="padding: 12px 16px; border-bottom: 1px solid #334155;">
-            <span><i class="bi bi-info-circle"></i> Danh sách yêu cầu hỗ trợ</span>
-            <span id="supportsCount" class="badge-count">0</span>
+        <div id="ordersPanel" class="table-card">
+            <div style="padding: 14px 18px; border-bottom: 1px solid #334155; display: flex; justify-content: space-between; align-items: center;">
+                <span><i class="bi bi-info-circle-fill"></i> Danh sách đơn hàng</span>
+                <span id="ordersCount" class="badge-count">0</span>
+            </div>
+            <div style="overflow-x: auto;">
+                <table class="table table-dark">
+                    <thead><tr><th>Thời gian</th><th>UID</th><th>Messengers</th><th>Gmail</th><th>Dịch vụ</th><th>Mô tả</th><th>Liên hệ</th><th>Ảnh</th><th>SĐT</th><th>Trạng thái</th><th></th></tr></thead>
+                    <tbody id="ordersBody"><tr><td colspan="11" class="text-center"><span class="spinner"></span> Đang tải...</td></tr></tbody>
+                </table>
+            </div>
         </div>
-        <div style="overflow-x: auto;">
-            <table class="table table-dark table-striped">
-                <thead>
-                    <tr><th>Thời gian</th><th>UID</th><th>Messengers</th><th>Gmail</th><th>Loại</th><th>Mô tả</th><th>Liên hệ</th><th>Ảnh</th><th>SĐT Zalo</th><th>Trạng thái</th><th>Thao tác</th></tr>
-                </thead>
-                <tbody id="supportsTbody">
-                    <tr><td colspan="11" class="text-center"><span class="spinner"></span> Đang tải...</td></tr>
-                </tbody>
-            </table>
+
+        <div id="supportsPanel" class="table-card" style="display: none;">
+            <div style="padding: 14px 18px; border-bottom: 1px solid #334155;">
+                <span><i class="bi bi-info-circle-fill"></i> Danh sách yêu cầu hỗ trợ</span>
+                <span id="supportsCount" class="badge-count">0</span>
+            </div>
+            <div style="overflow-x: auto;">
+                <table class="table table-dark">
+                    <thead><tr><th>Thời gian</th><th>UID</th><th>Messengers</th><th>Gmail</th><th>Loại</th><th>Mô tả</th><th>Liên hệ</th><th>Ảnh</th><th>SĐT</th><th>Trạng thái</th><th></th></tr></thead>
+                    <tbody id="supportsBody"><tr><td colspan="11" class="text-center"><span class="spinner"></span> Đang tải...</td></tr></tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="footer">
+            <i class="bi bi-shield-check"></i> Dữ liệu đồng bộ từ Google Sheets | SBIDI ADMIN
         </div>
     </div>
+</div>
 
-    <div class="footer"><i class="bi bi-shield-check"></i> Dữ liệu đồng bộ từ Google Sheets | SBIDI ADMIN</div>
+<!-- PWA Install Prompt -->
+<div id="installPrompt" class="install-prompt" style="display: none;">
+    <span><i class="bi bi-download"></i> Cài đặt SBIDI ADMIN như ứng dụng</span>
+    <button id="installBtn">Cài đặt</button>
 </div>
 
 <script>
 // === CẤU HÌNH ===
 const GAS_URL = 'https://script.google.com/macros/s/AKfycbwUArYxoApwU5922A74DUg99NyCgpKQiXVHgH_vqyjOxEszfv2trafcO-_o0C5bjX2jcg/exec';
+const DEFAULT_PASSWORD = 'default123';
 
+// === QUẢN LÝ USER ===
+let users = [];
+try { const stored = localStorage.getItem('sbidi_admin_users'); if (stored) users = JSON.parse(stored); } catch(e) {}
+if (users.length === 0) { users = [{ password: DEFAULT_PASSWORD, hasChangedPassword: false }]; localStorage.setItem('sbidi_admin_users', JSON.stringify(users)); }
+
+let currentUser = null;
 let ordersData = [], supportsData = [];
 let previousPending = 0;
+let refreshInterval = null;
+let deferredPrompt = null;
 
+// === TOAST NOTIFICATION ===
+function showToast(message, type = 'success') {
+    const toast = document.createElement('div');
+    toast.className = `toast-notification ${type}`;
+    let icon = '✅';
+    if (type === 'error') icon = '❌';
+    if (type === 'warning') icon = '⚠️';
+    if (type === 'info') icon = 'ℹ️';
+    toast.innerHTML = `
+        <div class="toast-header">
+            <i class="bi bi-${type === 'success' ? 'check-circle-fill' : (type === 'error' ? 'x-circle-fill' : 'info-circle-fill')}"></i>
+            <span>${type === 'success' ? 'Thành công' : (type === 'error' ? 'Lỗi' : (type === 'warning' ? 'Cảnh báo' : 'Thông báo'))}</span>
+        </div>
+        <div class="toast-body">${message}</div>
+    `;
+    document.body.appendChild(toast);
+    setTimeout(() => toast.remove(), 4000);
+}
+
+// === LOADING ===
+function showLoading(message = 'Đang xử lý...') {
+    let overlay = document.getElementById('loadingOverlay');
+    if (!overlay) {
+        overlay = document.createElement('div');
+        overlay.id = 'loadingOverlay';
+        overlay.className = 'loading-overlay';
+        overlay.innerHTML = '<div class="loading-spinner"></div><div class="loading-text"></div>';
+        document.body.appendChild(overlay);
+    }
+    overlay.querySelector('.loading-text').innerText = message;
+    overlay.style.display = 'flex';
+}
+
+function hideLoading() {
+    const overlay = document.getElementById('loadingOverlay');
+    if (overlay) overlay.style.display = 'none';
+}
+
+// === PWA INSTALL ===
+window.addEventListener('beforeinstallprompt', (e) => {
+    e.preventDefault();
+    deferredPrompt = e;
+    document.getElementById('installPrompt').style.display = 'flex';
+});
+
+document.getElementById('installBtn')?.addEventListener('click', async () => {
+    if (deferredPrompt) {
+        deferredPrompt.prompt();
+        const { outcome } = await deferredPrompt.userChoice;
+        if (outcome === 'accepted') {
+            showToast('✅ Đã cài đặt ứng dụng thành công!', 'success');
+        }
+        deferredPrompt = null;
+        document.getElementById('installPrompt').style.display = 'none';
+    }
+});
+
+// === ĐĂNG NHẬP ===
+async function handleLogin() {
+    const pwd = document.getElementById('passwordInput').value.trim();
+    const user = findUser();
+    
+    if (!pwd) { showToast('Vui lòng nhập mật khẩu', 'error'); return; }
+    
+    if (user && user.password === pwd) {
+        currentUser = user;
+        if (!user.hasChangedPassword) {
+            document.getElementById('loginView').style.display = 'none';
+            document.getElementById('changepassView').style.display = 'flex';
+            showToast('Vui lòng đổi mật khẩu lần đầu', 'warning');
+        } else {
+            localStorage.setItem('sbidi_admin_logged', 'true');
+            document.getElementById('loginView').style.display = 'none';
+            document.getElementById('adminView').style.display = 'block';
+            showToast('Đăng nhập thành công!', 'success');
+            await fetchAllData();
+            startAutoRefresh();
+        }
+    } else {
+        showToast('Sai mật khẩu!', 'error');
+    }
+}
+
+// === ĐỔI MẬT KHẨU ===
+async function handleChangePassword() {
+    const newPass = document.getElementById('newPassInput').value.trim();
+    const confirmPass = document.getElementById('confirmPassInput').value.trim();
+    
+    if (!newPass || !confirmPass) { showToast('Vui lòng nhập mật khẩu mới', 'error'); return; }
+    if (newPass.length < 6) { showToast('Mật khẩu phải có ít nhất 6 ký tự', 'error'); return; }
+    if (newPass !== confirmPass) { showToast('Mật khẩu xác nhận không khớp', 'error'); return; }
+    
+    showLoading('Đang cập nhật mật khẩu...');
+    
+    setTimeout(() => {
+        const updated = { ...currentUser, password: newPass, hasChangedPassword: true };
+        updateUser(updated);
+        hideLoading();
+        showToast('✅ Đổi mật khẩu thành công!', 'success');
+        
+        setTimeout(() => {
+            localStorage.setItem('sbidi_admin_logged', 'true');
+            document.getElementById('changepassView').style.display = 'none';
+            document.getElementById('adminView').style.display = 'block';
+            fetchAllData();
+            startAutoRefresh();
+        }, 1000);
+    }, 500);
+}
+
+// === HÀM USER ===
+function saveUsers() { localStorage.setItem('sbidi_admin_users', JSON.stringify(users)); }
+function findUser() { return users[0]; }
+function updateUser(updated) { users[0] = updated; saveUsers(); }
+
+function handleLogout() {
+    localStorage.removeItem('sbidi_admin_logged');
+    if (refreshInterval) clearInterval(refreshInterval);
+    document.getElementById('adminView').style.display = 'none';
+    document.getElementById('loginView').style.display = 'flex';
+    document.getElementById('passwordInput').value = '';
+    showToast('Đã đăng xuất', 'info');
+}
+
+function startAutoRefresh() {
+    if (refreshInterval) clearInterval(refreshInterval);
+    refreshInterval = setInterval(() => {
+        fetchAllData();
+        showToast('Đã cập nhật dữ liệu mới', 'info');
+    }, 30000);
+}
+
+// === LẤY DỮ LIỆU ===
 async function fetchOrders() {
     try {
         const res = await fetch(GAS_URL + '?action=getOrders');
@@ -114,7 +487,9 @@ async function fetchOrders() {
         renderOrders();
         updateStats();
     } catch(e) {
-        document.getElementById('ordersTbody').innerHTML = '<tr><td colspan="11" class="text-center text-danger">❌ Lỗi: ' + e.message + '</td></tr>';
+        console.error(e);
+        document.getElementById('ordersBody').innerHTML = `<tr><td colspan="11" class="text-center text-danger">❌ Lỗi: ${e.message}</td></tr>`;
+        showToast('Lỗi kết nối đến server', 'error');
     }
 }
 
@@ -126,7 +501,8 @@ async function fetchSupports() {
         renderSupports();
         updateStats();
     } catch(e) {
-        document.getElementById('supportsTbody').innerHTML = '<tr><td colspan="11" class="text-center text-danger">❌ Lỗi: ' + e.message + '</td></tr>';
+        console.error(e);
+        document.getElementById('supportsBody').innerHTML = `<tr><td colspan="11" class="text-center text-danger">❌ Lỗi: ${e.message}</td></tr>`;
     }
 }
 
@@ -134,186 +510,146 @@ async function fetchAllData() {
     await Promise.all([fetchOrders(), fetchSupports()]);
 }
 
-async function markAsDone(type, row, uid) {
+// === XỬ LÝ ĐÃ XỬ LÝ ===
+window.markAsDone = async function(type, row, uid) {
     if (!confirm('Xác nhận đã xử lý đơn hàng UID: ' + uid + '?')) return;
+    showLoading('Đang xử lý...');
     try {
         const url = `${GAS_URL}?action=markDone&type=${type}&row=${row}&uid=${encodeURIComponent(uid)}`;
         const res = await fetch(url);
         const result = await res.json();
-        if(result.success) {
-            showNotification('✅ Đã xử lý và xóa đơn hàng ' + uid);
+        hideLoading();
+        if (result.success) {
+            showToast(`✅ Đã xử lý và xóa đơn hàng ${uid}`, 'success');
             await fetchAllData();
         } else {
-            showNotification('❌ Lỗi: ' + (result.error || 'Không xác định'), true);
+            showToast(`❌ Lỗi: ${result.error || 'Không xác định'}`, 'error');
         }
     } catch(e) {
-        showNotification('❌ Lỗi kết nối: ' + e.message, true);
+        hideLoading();
+        showToast(`❌ Lỗi kết nối: ${e.message}`, 'error');
     }
-}
+};
 
-function showNotification(msg, isErr) {
-    var div = document.createElement('div');
-    div.className = 'notification' + (isErr ? ' error' : '');
-    div.innerHTML = msg;
-    document.body.appendChild(div);
-    setTimeout(function() { div.remove(); }, 3000);
-}
-
+// === HIỂN THỊ DỮ LIỆU ===
 function renderOrders() {
-    var tbody = document.getElementById('ordersTbody');
-    var countSpan = document.getElementById('ordersCount');
-    if(!ordersData.length || ordersData.length <= 1) {
+    const tbody = document.getElementById('ordersBody');
+    const countSpan = document.getElementById('ordersCount');
+    if (!ordersData.length || ordersData.length <= 1) {
         tbody.innerHTML = '<tr><td colspan="11" class="text-center">📭 Chưa có đơn hàng nào</td></tr>';
         countSpan.innerText = '0';
         return;
     }
-    var rows = ordersData.slice(1);
+    const rows = ordersData.slice(1);
     countSpan.innerText = rows.length;
-    var html = '';
-    for(var i = 0; i < rows.length; i++) {
-        var row = rows[i];
-        var time = row[0] || '---';
-        var uid = row[1] || '---';
-        var messengers = row[2] || '---';
-        var gmail = row[3] || '---';
-        var service = row[4] || '---';
-        var desc = row[5] || '---';
-        var contact = row[6] || '---';
-        var images = row[7] || '';
-        var phone = row[8] || '---';
-        var status = row[9] || 'Mới';
-        if(phone && phone.toString().startsWith("'")) phone = phone.toString().substring(1);
-        var imgHtml = '---';
-        if(images) {
-            var links = images.split('\n');
-            var imgs = [];
-            for(var j=0;j<links.length;j++) {
-                imgs.push('<a href="'+links[j]+'" target="_blank" class="image-link"><i class="bi bi-image"></i> Xem ảnh</a>');
-            }
-            imgHtml = imgs.join(' ');
-        }
-        var isNew = (status === 'Mới');
-        var rowNum = i + 2;
-        html += '<tr>';
-        html += '<td style="white-space:nowrap;">'+time+'</td>';
-        html += '<td><code>'+uid+'</code></td>';
-        html += '<td>'+messengers+'</td>';
-        html += '<td>'+gmail+'</td>';
-        html += '<td>'+service+'</td>';
-        html += '<td style="max-width:250px; word-break:break-word;">'+desc+'</td>';
-        html += '<td>'+contact+'</td>';
-        html += '<td>'+imgHtml+'</td>';
-        html += '<td class="phone-text">'+phone+'</td>';
-        html += '<td><span class="status-new">'+status+'</span></td>';
-        if(isNew) {
-            html += '<td><button class="btn-done" onclick="markAsDone(\'order\', '+rowNum+', \''+uid+'\')"><i class="bi bi-check-lg"></i> Đã xử lý</button></td>';
-        } else {
-            html += '<td><span style="color:#10b981;">✓ Đã xử lý</span></td>';
-        }
-        html += '</tr>';
+    let html = '';
+    for (let i = 0; i < rows.length; i++) {
+        const r = rows[i];
+        const time = r[0] || '---', uid = r[1] || '---', messengers = r[2] || '---', gmail = r[3] || '---', service = r[4] || '---', desc = r[5] || '---', contact = r[6] || '---', images = r[7] || '', phone = (r[8] || '---').toString().startsWith("'") ? r[8].substring(1) : (r[8] || '---'), status = r[9] || 'Mới';
+        let imgHtml = '---';
+        if (images) { const links = images.split('\n'); let imgs = []; for (let j = 0; j < links.length; j++) imgs.push(`<a href="${links[j]}" target="_blank" class="image-link">Xem ảnh</a>`); imgHtml = imgs.join(' '); }
+        const isNew = status === 'Mới';
+        const rowNum = i + 2;
+        html += `<tr>
+            <td style="white-space:nowrap;">${time}</td>
+            <td><code>${uid}</code></td>
+            <td>${messengers}</td>
+            <td>${gmail}</td>
+            <td>${service}</td>
+            <td style="max-width:250px; word-break:break-word;">${desc}</td>
+            <td>${contact}</td>
+            <td>${imgHtml}</td>
+            <td class="phone-text">${phone}</td>
+            <td><span class="status-new">${status}</span></td>
+            <td>${isNew ? `<button class="btn-done" onclick="markAsDone('order', ${rowNum}, '${uid}')">Đã xử lý</button>` : '✅'}</td>
+        </tr>`;
     }
     tbody.innerHTML = html;
 }
 
 function renderSupports() {
-    var tbody = document.getElementById('supportsTbody');
-    var countSpan = document.getElementById('supportsCount');
-    if(!supportsData.length || supportsData.length <= 1) {
+    const tbody = document.getElementById('supportsBody');
+    const countSpan = document.getElementById('supportsCount');
+    if (!supportsData.length || supportsData.length <= 1) {
         tbody.innerHTML = '<tr><td colspan="11" class="text-center">📭 Chưa có yêu cầu hỗ trợ nào</td></tr>';
         countSpan.innerText = '0';
         return;
     }
-    var rows = supportsData.slice(1);
+    const rows = supportsData.slice(1);
     countSpan.innerText = rows.length;
-    var html = '';
-    for(var i = 0; i < rows.length; i++) {
-        var row = rows[i];
-        var time = row[0] || '---';
-        var uid = row[1] || '---';
-        var messengers = row[2] || '---';
-        var gmail = row[3] || '---';
-        var type = row[4] || '---';
-        var desc = row[5] || '---';
-        var contact = row[6] || '---';
-        var images = row[7] || '';
-        var phone = row[8] || '---';
-        var status = row[9] || 'Mới';
-        if(phone && phone.toString().startsWith("'")) phone = phone.toString().substring(1);
-        var imgHtml = '---';
-        if(images) {
-            var links = images.split('\n');
-            var imgs = [];
-            for(var j=0;j<links.length;j++) {
-                imgs.push('<a href="'+links[j]+'" target="_blank" class="image-link"><i class="bi bi-image"></i> Xem ảnh</a>');
-            }
-            imgHtml = imgs.join(' ');
-        }
-        var isNew = (status === 'Mới');
-        var rowNum = i + 2;
-        html += '<tr>';
-        html += '<td style="white-space:nowrap;">'+time+'</td>';
-        html += '<td><code>'+uid+'</code></td>';
-        html += '<td>'+messengers+'</td>';
-        html += '<td>'+gmail+'</td>';
-        html += '<td>'+type+'</td>';
-        html += '<td style="max-width:250px; word-break:break-word;">'+desc+'</td>';
-        html += '<td>'+contact+'</td>';
-        html += '<td>'+imgHtml+'</td>';
-        html += '<td class="phone-text">'+phone+'</td>';
-        html += '<td><span class="status-new">'+status+'</span></td>';
-        if(isNew) {
-            html += '<td><button class="btn-done" onclick="markAsDone(\'support\', '+rowNum+', \''+uid+'\')"><i class="bi bi-check-lg"></i> Đã xử lý</button></td>';
-        } else {
-            html += '<td><span style="color:#10b981;">✓ Đã xử lý</span></td>';
-        }
-        html += '</tr>';
+    let html = '';
+    for (let i = 0; i < rows.length; i++) {
+        const r = rows[i];
+        const time = r[0] || '---', uid = r[1] || '---', messengers = r[2] || '---', gmail = r[3] || '---', type = r[4] || '---', desc = r[5] || '---', contact = r[6] || '---', images = r[7] || '', phone = (r[8] || '---').toString().startsWith("'") ? r[8].substring(1) : (r[8] || '---'), status = r[9] || 'Mới';
+        let imgHtml = '---';
+        if (images) { const links = images.split('\n'); let imgs = []; for (let j = 0; j < links.length; j++) imgs.push(`<a href="${links[j]}" target="_blank" class="image-link">Xem ảnh</a>`); imgHtml = imgs.join(' '); }
+        const isNew = status === 'Mới';
+        const rowNum = i + 2;
+        html += `<tr>
+            <td style="white-space:nowrap;">${time}</td>
+            <td><code>${uid}</code></td>
+            <td>${messengers}</td>
+            <td>${gmail}</td>
+            <td>${type}</td>
+            <td style="max-width:250px; word-break:break-word;">${desc}</td>
+            <td>${contact}</td>
+            <td>${imgHtml}</td>
+            <td class="phone-text">${phone}</td>
+            <td><span class="status-new">${status}</span></td>
+            <td>${isNew ? `<button class="btn-done" onclick="markAsDone('support', ${rowNum}, '${uid}')">Đã xử lý</button>` : '✅'}</td>
+        </tr>`;
     }
     tbody.innerHTML = html;
 }
 
 function updateStats() {
-    var ordersCount = (ordersData.length - 1) || 0;
-    var supportsCount = (supportsData.length - 1) || 0;
+    const ordersCount = (ordersData.length - 1) || 0;
+    const supportsCount = (supportsData.length - 1) || 0;
     document.getElementById('statOrders').innerText = ordersCount;
     document.getElementById('statSupports').innerText = supportsCount;
-    var pending = 0;
-    for(var i=1;i<ordersData.length;i++) if(ordersData[i][9] === 'Mới') pending++;
-    for(var i=1;i<supportsData.length;i++) if(supportsData[i][9] === 'Mới') pending++;
+    let pending = 0;
+    for (let i = 1; i < ordersData.length; i++) if (ordersData[i][9] === 'Mới') pending++;
+    for (let i = 1; i < supportsData.length; i++) if (supportsData[i][9] === 'Mới') pending++;
     document.getElementById('statPending').innerText = pending;
-    
-    if(pending > previousPending && previousPending !== 0) {
-        showNotification('📢 Có ' + (pending - previousPending) + ' đơn hàng mới cần xử lý!');
+    if (pending > previousPending && previousPending !== 0) {
+        showToast(`📢 Có ${pending - previousPending} đơn hàng mới cần xử lý!`, 'warning');
     }
     previousPending = pending;
 }
 
 function switchTab(tab) {
-    var btns = document.querySelectorAll('.tab-btn');
-    for(var i=0; i<btns.length; i++) btns[i].classList.remove('active');
-    if(tab === 'orders') {
+    document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+    if (tab === 'orders') {
         document.querySelector('.tab-btn[data-tab="orders"]').classList.add('active');
-        document.getElementById('ordersTab').style.display = 'block';
-        document.getElementById('supportsTab').style.display = 'none';
+        document.getElementById('ordersPanel').style.display = 'block';
+        document.getElementById('supportsPanel').style.display = 'none';
     } else {
         document.querySelector('.tab-btn[data-tab="supports"]').classList.add('active');
-        document.getElementById('ordersTab').style.display = 'none';
-        document.getElementById('supportsTab').style.display = 'block';
+        document.getElementById('ordersPanel').style.display = 'none';
+        document.getElementById('supportsPanel').style.display = 'block';
     }
 }
 
-// Gắn sự kiện
-document.querySelectorAll('.tab-btn').forEach(function(btn) {
-    btn.addEventListener('click', function() {
-        switchTab(btn.getAttribute('data-tab'));
-    });
-});
-document.getElementById('refreshBtn').addEventListener('click', function() {
-    fetchAllData();
-});
+// === GẮN SỰ KIỆN ===
+document.getElementById('loginBtn').onclick = handleLogin;
+document.getElementById('changePassBtn').onclick = handleChangePassword;
+document.getElementById('logoutBtnAdmin').onclick = handleLogout;
+document.getElementById('refreshBtn').onclick = () => { fetchAllData(); showToast('Đang làm mới dữ liệu...', 'info'); };
+document.querySelectorAll('.tab-btn').forEach(btn => { btn.onclick = () => switchTab(btn.getAttribute('data-tab')); });
+document.getElementById('passwordInput').addEventListener('keypress', (e) => { if (e.key === 'Enter') handleLogin(); });
 
-// Khởi tạo
-fetchAllData();
-setInterval(fetchAllData, 30000);
+// === KIỂM TRA ĐĂNG NHẬP ===
+if (localStorage.getItem('sbidi_admin_logged') === 'true') {
+    document.getElementById('loginView').style.display = 'none';
+    document.getElementById('adminView').style.display = 'block';
+    fetchAllData();
+    startAutoRefresh();
+}
+
+// === KIỂM TRA PWA ===
+if (window.matchMedia('(display-mode: standalone)').matches) {
+    console.log('Đang chạy dưới dạng ứng dụng');
+}
 </script>
 </body>
 </html>
