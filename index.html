@@ -85,6 +85,7 @@
         .spinner { display: inline-block; width: 18px; height: 18px; border: 2px solid #fff; border-top-color: transparent; border-radius: 50%; animation: spin 0.6s linear infinite; margin-right: 8px; }
         .badge-count { background: #8b5cf6; padding: 2px 10px; border-radius: 30px; font-size: 0.7rem; margin-left: 10px; }
         .status-new { background: rgba(245,158,11,0.15); color: #f59e0b; padding: 4px 12px; border-radius: 30px; font-size: 0.7rem; display: inline-block; }
+        .status-done { background: rgba(16,185,129,0.15); color: #10b981; padding: 4px 12px; border-radius: 30px; font-size: 0.7rem; display: inline-block; }
         .phone-text { font-family: monospace; font-size: 0.8rem; background: rgba(0,0,0,0.2); padding: 2px 6px; border-radius: 8px; }
         .flex-between { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; }
         
@@ -172,8 +173,8 @@
 
 <script>
 // === CẤU HÌNH ===
-// ⚠️ QUAN TRỌNG: THAY URL NÀY BẰNG URL GAS SAU KHI DEPLOY LẠI ⚠️
-const GAS_URL = 'https://script.google.com/macros/s/AKfycbwsIQl_4RygaWwcuAsKAlDpH9yGugry2VQT5YW0s6_X6lkgCF5068MYVBCts8qdO9xBWw/exec';
+// ✅ ĐÃ CẬP NHẬT URL GAS MỚI
+const GAS_URL = 'https://script.google.com/macros/s/AKfycbx63wiPleT9wabN8SHi9KdllEPXkvlr2iPjdxqKVtiBrTxc9bRPDNYMIIoaWicvAGz-mw/exec';
 const DEFAULT_PASSWORD = 'default123';
 
 let users = [];
@@ -268,7 +269,7 @@ async function fetchSupports() {
         supportsData = Array.isArray(data) ? data : [];
         renderSupports();
         updateStats();
-    } catch(e) { document.getElementById('supportsBody').innerHTML = '</table><td colspan="11" class="text-center text-danger">❌ Lỗi tải dữ liệu<\/td><\/tr>'; }
+    } catch(e) { document.getElementById('supportsBody').innerHTML = '</tr><td colspan="11" class="text-center text-danger">❌ Lỗi tải dữ liệu<\/td><\/tr>'; }
 }
 
 async function fetchAllData() { await Promise.all([fetchOrders(), fetchSupports()]); }
@@ -281,9 +282,9 @@ window.markAsDone = async function(type, row, uid) {
         const result = await res.json();
         showLoading(false);
         if (result.success) {
-            showToast(`✅ Đã xử lý và xóa đơn hàng ${uid}`, 'success');
+            showToast(`✅ Đã cập nhật trạng thái cho đơn hàng ${uid}`, 'success');
             await fetchAllData();
-        } else { showToast(`❌ Lỗi: Không thể xóa`, 'error'); }
+        } else { showToast(`❌ Lỗi: Không thể cập nhật`, 'error'); }
     } catch(e) { showLoading(false); showToast(`❌ Lỗi kết nối`, 'error'); }
 };
 
@@ -298,15 +299,17 @@ function renderOrders() {
         const time = r[0] || '---', uid = r[1] || '---', messengers = r[2] || '---', gmail = r[3] || '---', service = r[4] || '---', desc = r[5] || '---', contact = r[6] || '---', images = r[7] || '', phone = (r[8] || '---').toString().startsWith("'") ? r[8].substring(1) : (r[8] || '---'), status = r[9] || 'Mới';
         let imgHtml = '---';
         if (images) { const links = images.split('\n'); let imgs = []; for (let j = 0; j < links.length; j++) imgs.push(`<a href="${links[j]}" target="_blank" class="image-link">Xem ảnh</a>`); imgHtml = imgs.join(' '); }
-        const isNew = status === 'Mới', rowNum = i + 2;
-        html += `<tr><td style="white-space:nowrap;">${time}<\/td><td><code>${uid}<\/code><\/td><td>${messengers}<\/td><td>${gmail}<\/td><td>${service}<\/td><td style="max-width:250px; word-break:break-word;">${desc}<\/td><td>${contact}<\/td><td>${imgHtml}<\/td><td class="phone-text">${phone}<\/td><td><span class="status-new">${status}<\/span><\/td><td>${isNew ? `<button class="btn-done" onclick="markAsDone('order', ${rowNum}, '${uid}')">Đã xử lý</button>` : '✅'}<\/td><\/tr>`;
+        const isNew = status === 'Mới';
+        const rowNum = i + 2;
+        const statusClass = isNew ? 'status-new' : 'status-done';
+        html += `<tr><td style="white-space:nowrap;">${time}<\/td><td><code>${uid}<\/code><\/td><td>${messengers}<\/td><td>${gmail}<\/td><td>${service}<\/td><td style="max-width:250px; word-break:break-word;">${desc}<\/td><td>${contact}<\/td><td>${imgHtml}<\/td><td class="phone-text">${phone}<\/td><td><span class="${statusClass}">${status}<\/span><\/td><td>${isNew ? `<button class="btn-done" onclick="markAsDone('order', ${rowNum}, '${uid}')">Xác nhận đã xử lý</button>` : '✅ Đã xử lý'}<\/td><\/tr>`;
     }
     tbody.innerHTML = html;
 }
 
 function renderSupports() {
     const tbody = document.getElementById('supportsBody'), countSpan = document.getElementById('supportsCount');
-    if (!supportsData.length || supportsData.length <= 1) { tbody.innerHTML = '<tr><td colspan="11" class="text-center">📭 Chưa có yêu cầu hỗ trợ nào<\/td><\/tr>'; countSpan.innerText = '0'; return; }
+    if (!supportsData.length || supportsData.length <= 1) { tbody.innerHTML = '</table><td colspan="11" class="text-center">📭 Chưa có yêu cầu hỗ trợ nào<\/td><\/tr>'; countSpan.innerText = '0'; return; }
     const rows = supportsData.slice(1);
     countSpan.innerText = rows.length;
     let html = '';
@@ -315,8 +318,10 @@ function renderSupports() {
         const time = r[0] || '---', uid = r[1] || '---', messengers = r[2] || '---', gmail = r[3] || '---', type = r[4] || '---', desc = r[5] || '---', contact = r[6] || '---', images = r[7] || '', phone = (r[8] || '---').toString().startsWith("'") ? r[8].substring(1) : (r[8] || '---'), status = r[9] || 'Mới';
         let imgHtml = '---';
         if (images) { const links = images.split('\n'); let imgs = []; for (let j = 0; j < links.length; j++) imgs.push(`<a href="${links[j]}" target="_blank" class="image-link">Xem ảnh</a>`); imgHtml = imgs.join(' '); }
-        const isNew = status === 'Mới', rowNum = i + 2;
-        html += `<tr><td style="white-space:nowrap;">${time}<\/td><td><code>${uid}<\/code><\/td><td>${messengers}<\/td><td>${gmail}<\/td><td>${type}<\/td><td style="max-width:250px; word-break:break-word;">${desc}<\/td><td>${contact}<\/td><td>${imgHtml}<\/td><td class="phone-text">${phone}<\/td><td><span class="status-new">${status}<\/span><\/td><td>${isNew ? `<button class="btn-done" onclick="markAsDone('support', ${rowNum}, '${uid}')">Đã xử lý</button>` : '✅'}<\/td><\/tr>`;
+        const isNew = status === 'Mới';
+        const rowNum = i + 2;
+        const statusClass = isNew ? 'status-new' : 'status-done';
+        html += `<tr><td style="white-space:nowrap;">${time}<\/td><td><code>${uid}<\/code><\/td><td>${messengers}<\/td><td>${gmail}<\/td><td>${type}<\/td><td style="max-width:250px; word-break:break-word;">${desc}<\/td><td>${contact}<\/td><td>${imgHtml}<\/td><td class="phone-text">${phone}<\/td><td><span class="${statusClass}">${status}<\/span><\/td><td>${isNew ? `<button class="btn-done" onclick="markAsDone('support', ${rowNum}, '${uid}')">Xác nhận đã xử lý</button>` : '✅ Đã xử lý'}<\/td><\/tr>`;
     }
     tbody.innerHTML = html;
 }
